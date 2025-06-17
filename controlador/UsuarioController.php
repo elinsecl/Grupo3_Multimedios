@@ -9,8 +9,7 @@ class UsuarioController {
     private $dao;
 
     public function __construct(){
-        // Cambiado de new UsuarioDao() a new UsuarioDAO() para una convención de nombres consistente
-        $this->dao = new UsuarioDAO(); 
+        $this->dao = new UsuarioDao(); 
     }
 
     /**
