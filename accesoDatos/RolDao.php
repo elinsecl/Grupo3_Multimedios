@@ -24,7 +24,7 @@ class RolDAO {
             
             $result[] = new Rol(
                 $row['id_rol'],
-                $row['nombre'],
+                $row['nombre_rol'],
                 $row['descripcion']
             );
         }
@@ -47,7 +47,7 @@ class RolDAO {
         if ($row) {
             return new Rol(
                 $row['id_rol'],
-                $row['nombre'],
+                $row['nombre_rol'],
                 $row['descripcion']
             );
         }
@@ -66,7 +66,7 @@ class RolDAO {
         $sql = "INSERT INTO Grupo3_Rol (nombre, descripcion) VALUES (?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
-            $objeto->nombre,
+            $objeto->nombre_rol,
             $objeto->descripcion
         ]);
     }
@@ -81,10 +81,10 @@ class RolDAO {
      * @return bool True si la actualización fue exitosa, false en caso contrario.
      */
     public function actualizar(Rol $objeto): bool {
-        $sql = "UPDATE Grupo3_Rol SET nombre = ?, descripcion = ? WHERE id_rol = ?";
+        $sql = "UPDATE Grupo3_Rol SET nombre_rol = ?, descripcion = ? WHERE id_rol = ?";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
-            $objeto->nombre,
+            $objeto->nombre_rol,
             $objeto->descripcion,
             $objeto->id_rol // El ID para identificar el registro a actualizar
         ]);

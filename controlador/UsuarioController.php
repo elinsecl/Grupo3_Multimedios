@@ -158,7 +158,7 @@ switch ($_SERVER['REQUEST_METHOD']) {
                 $tipo_usuario,
                 (int)$id_rol, // Asegurar que id_rol sea int
                 $fecha_creacion,
-                (int)$estado // Asegurar que estado sea int
+                $estado
             ); 
 
             if ($controlador->actualizar($usuario)) {
