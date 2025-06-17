@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__.'/../misc/Conexion.php';
-require_once __DIR__.'/../model/Mesa.php';
+require_once __DIR__.'/../modelo/Mesa.php';
 
 class MesaDao {
 
