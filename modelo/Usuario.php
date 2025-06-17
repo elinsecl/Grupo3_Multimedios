@@ -7,7 +7,7 @@ class Usuario{
     public $correo;
     public $password;
     public $tipo_usuario;
-    public $id_rol
+    public $id_rol;
     public $fecha_creacion;
     public $estado;
   
