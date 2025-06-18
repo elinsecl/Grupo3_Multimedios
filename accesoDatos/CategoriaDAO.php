@@ -89,10 +89,25 @@ class CategoriaDAO {
      * @return bool True si la eliminación fue exitosa, false en caso contrario.
      */
     public function eliminar(int $id_categoria): bool {
-        $sql = "DELETE FROM Grupo3_Categoria WHERE id_categoria = ?";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$id_categoria]);
+        try {
+            // Preparar la sentencia para eliminar la categoría
+            $stmt = $this->pdo->prepare("DELETE FROM Grupo3_Categoria WHERE id_categoria = :id");
+            $stmt->bindParam(':id', $id_categoria, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // Verificar si alguna fila fue afectada
+            if ($stmt->rowCount() > 0) {
+                return true; // Categoría eliminada exitosamente
+            } else {
+                return false; // No se encontró la categoría con ese ID
+            }
+        } catch (PDOException $e) {
+            // En caso de error, se registra en el log
+            error_log("Error al eliminar categoría: " . $e->getMessage());
+            return false; // Retorna false si hubo un error
+        }
     }
+
 }
 
 ?>

@@ -105,10 +105,25 @@ class PlatilloDAO {
      * @return bool True si la eliminación fue exitosa, false en caso contrario.
      */
     public function eliminar(int $id_platillo): bool {
-        $sql = "DELETE FROM Grupo3_Platillo WHERE id_platillo = ?";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$id_platillo]);
+        try {
+            // Preparar la sentencia para eliminar el platillo
+            $stmt = $this->pdo->prepare("DELETE FROM Grupo3_Platillo WHERE id_platillo = :id");
+            $stmt->bindParam(':id', $id_platillo, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // Verificar si alguna fila fue afectada
+            if ($stmt->rowCount() > 0) {
+                return true; // Platillo eliminado exitosamente
+            } else {
+                return false; // No se encontró el platillo con ese ID
+            }
+        } catch (PDOException $e) {
+            // En caso de error, se registra en el log
+            error_log("Error al eliminar platillo: " . $e->getMessage());
+            return false; // Retorna false si hubo un error
+        }
     }
+
 }
 
 ?>
