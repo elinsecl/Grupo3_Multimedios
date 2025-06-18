@@ -28,8 +28,8 @@ class HistorialInventarioDAO {
         return $result;
     }
 
-    public function obtenerPorId(int $id_historial_inventario): ?HistorialInventario {
-        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Inventario WHERE id_historial_inventario = ?");
+    public function obtenerPorId(int $id_inventario): ?HistorialInventario {
+        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Inventario WHERE id_inventario = ?");
         $stmt->execute([$id_mesa]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);

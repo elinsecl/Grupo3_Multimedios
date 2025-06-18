@@ -16,7 +16,7 @@ class HistorialPedidoDAO {
 
         $result = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $result[] = new Mesa(
+            $result[] = new HistorialPedido(
                 $row['id_historial_pedido'],
                 $row['pedido_id'],
                 $row['fecha_entrega'],
@@ -26,13 +26,13 @@ class HistorialPedidoDAO {
         return $result;
     }
 
-    public function obtenerPorId(int $id_mesa): ?Mesa {
+    public function obtenerPorId(int $pedido_id): ?HistorialPedido {
         $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Pedido WHERE pedido_id = ?");
         $stmt->execute([$id_mesa]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
-            return new Mesa(
+            return new HistorialPedido(
                 $row['id_historial_pedidomesa'],
                 $row['pedido_id'],
                 $row['fecha_entrega'],
@@ -53,7 +53,7 @@ class HistorialPedidoDAO {
         ]);
     }
 
-    public function eliminar(int $id_mesa): bool {
+    public function eliminar(int $id_historial_pedidomesa): bool {
         $sql = "DELETE FROM Grupo3_Historial_Pedido WHERE pedido_id = ?";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$id_mesa]);
