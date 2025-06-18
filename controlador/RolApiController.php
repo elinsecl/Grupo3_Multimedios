@@ -71,7 +71,7 @@ class RolApiController {
         $datos = json_decode(file_get_contents("php://input"), true);
 
         // Validar que los datos necesarios estén presentes para Rol 
-        if (!isset($datos['nombre'], $datos['descripcion'])) {
+        if (!isset($datos['nombre_rol'], $datos['descripcion'])) {
             http_response_code(400); // Bad Request
             echo json_encode(["mensaje" => "Datos incompletos para crear rol. Se requieren nombre, descripcion."]);
             return;

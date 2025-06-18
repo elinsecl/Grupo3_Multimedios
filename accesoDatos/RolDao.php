@@ -63,7 +63,7 @@ class RolDAO {
      * @return bool True si la inserción fue exitosa, false en caso contrario.
      */
     public function insertar(Rol $objeto): bool {
-        $sql = "INSERT INTO Grupo3_Rol (nombre, descripcion) VALUES (?, ?)";
+        $sql = "INSERT INTO Grupo3_Rol (nombre_rol, descripcion) VALUES (?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             $objeto->nombre_rol,
