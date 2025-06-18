@@ -30,7 +30,7 @@ class HistorialInventarioDAO {
 
     public function obtenerPorId(int $id_inventario): ?HistorialInventario {
         $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Inventario WHERE id_inventario = ?");
-        $stmt->execute([$id_mesa]);
+        $stmt->execute([$id_inventario]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
@@ -62,7 +62,7 @@ class HistorialInventarioDAO {
     public function eliminar(int $id_historial_inventario): bool {
         $sql = "DELETE FROM Grupo3_Historial_Inventario WHERE id_historial_inventario = ?";
         $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$id_mesa]);
+        return $stmt->execute([$id_historial_inventario]);
     }
 }
 ?>
