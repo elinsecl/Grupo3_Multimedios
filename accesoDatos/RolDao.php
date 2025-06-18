@@ -98,10 +98,23 @@ class RolDAO {
      * @param int $id_rol El ID del rol a eliminar.
      * @return bool True si la eliminación fue exitosa, false en caso contrario.
      */
-    public function eliminar(int $id_rol): bool {
-        $sql = "DELETE FROM Grupo3_Rol WHERE id_rol = ?";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$id_rol]);
+   public function eliminar(int $id_rol): bool {
+        try {
+            $sql = "DELETE FROM Grupo3_Rol WHERE id_rol = ?";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([$id_rol]);
+
+            // Si devuelve 0, significa que no se encontró un rol con esa ID y, por lo tanto, no se eliminó.
+            // Si devuelve 1 (o más, aunque para una eliminación por ID debería ser 1), significa éxito.
+            if ($stmt->rowCount() > 0) {
+                return true; // Se eliminó el rol
+            } else {
+                return false; // No se encontró el rol con esa ID o no se afectaron filas
+            }
+        } catch (PDOException $e) {
+            error_log("Error al eliminar rol con ID " . $id_rol . ": " . $e->getMessage());
+            return false; 
+        }
     }
 
 }

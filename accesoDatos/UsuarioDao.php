@@ -119,10 +119,25 @@ class UsuarioDao {
      * @param int $id_usuario El ID del usuario a eliminar.
      * @return bool True si la eliminación fue exitosa, false en caso contrario.
      */
-    public function eliminar(int $id_usuario): bool {
-        $sql = "DELETE FROM Grupo3_Usuario WHERE id_usuario = ?";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([$id_usuario]);
+     public function eliminar(int $id_usuario): bool {
+        try {
+
+            $stmt = $this->pdo->prepare("DELETE FROM Grupo3_Usuario WHERE id_usuario = :id");
+            $stmt->bindParam(':id', $id_usuario, PDO::PARAM_INT);
+            $stmt->execute();
+
+            // Si 1 fila fue afectada, significa que se eliminó un usuario.
+            // Si 0 filas fueron afectadas, significa que no se encontró ningún usuario con esa ID.
+            if ($stmt->rowCount() > 0) {
+                return true; // Usuario eliminado exitosamente
+            } else {
+                return false; // No se encontró ningún usuario con esa ID
+            }
+        } catch (PDOException $e) {
+            // Registra el error para fines de depuración (por ejemplo, en un archivo)
+            error_log("Error al eliminar usuario: " . $e->getMessage());
+            return false;
+        }
     }
 
 }
