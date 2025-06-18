@@ -12,11 +12,11 @@ class HistorialInventarioDAO {
     }
 
     public function obtenerDatos(): array {
-        $stmt = $this->pdo->query("SELECT * FROM Grupo3_Mesa");
+        $stmt = $this->pdo->query("SELECT * FROM Grupo3_Historial_Inventario");
 
         $result = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $result[] = new Mesa(
+            $result[] = new HistorialInventario(
                 $row['id_historial_inventario'],
                 $row['id_inventario'],
                 $row['ingrediente_id'],
@@ -28,48 +28,39 @@ class HistorialInventarioDAO {
         return $result;
     }
 
-    public function obtenerPorId(int $id_mesa): ?Mesa {
-        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Mesa WHERE id_mesa = ?");
+    public function obtenerPorId(int $id_historial_inventario): ?HistorialInventario {
+        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Inventario WHERE id_historial_inventario = ?");
         $stmt->execute([$id_mesa]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
-            return new Mesa(
-                $row['id_mesa'],
-                $row['numero_mesa'],
-                $row['capacidad'],
-                $row['ubicacion'],
-                $row['estado']
+            return new HistorialInventario(
+                $row['id_historial_inventario'],
+                $row['id_inventario'],
+                $row['ingrediente_id'],
+                $row['cambio_stock'],
+                $row['fecha'],
+                $row['tipo_cambio']
             );
         }
         return null;
     }
 
-    public function insertar(Mesa $objeto): bool {
-        $sql = "INSERT INTO Grupo3_Mesa (numero_mesa, capacidad, ubicacion, estado) VALUES (?, ?, ?, ?)";
+    public function insertar(HistorialInventario $objeto): bool {
+        $sql = "INSERT INTO Grupo3_Historial_Inventario (id_historial_inventario, id_inventario, ingrediente_id, cambio_stock, fecha,tipo_cambio) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
-            $objeto->numero_mesa,
-            $objeto->capacidad,
-            $objeto->ubicacion,
-            $objeto->estado
+            $objeto->id_historial_inventario,
+            $objeto->id_inventario,
+            $objeto->ingrediente_id,
+            $objeto->cambio_stock,
+            $objeto->fecha,
+            $objeto->tipo_cambio
         ]);
     }
 
-    public function actualizar(Mesa $objeto): bool {
-        $sql = "UPDATE Grupo3_Mesa SET numero_mesa = ?, capacidad = ?, ubicacion = ?, estado = ? WHERE id_mesa = ?";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([
-            $objeto->numero_mesa,
-            $objeto->capacidad,
-            $objeto->ubicacion,
-            $objeto->estado,
-            $objeto->id_mesa
-        ]);
-    }
-
-    public function eliminar(int $id_mesa): bool {
-        $sql = "DELETE FROM Grupo3_Mesa WHERE id_mesa = ?";
+    public function eliminar(int $id_historial_inventario): bool {
+        $sql = "DELETE FROM Grupo3_Historial_Inventario WHERE id_historial_inventario = ?";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$id_mesa]);
     }

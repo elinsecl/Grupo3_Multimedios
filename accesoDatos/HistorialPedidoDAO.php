@@ -27,47 +27,34 @@ class HistorialPedidoDAO {
     }
 
     public function obtenerPorId(int $id_mesa): ?Mesa {
-        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Mesa WHERE id_mesa = ?");
+        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Pedido WHERE pedido_id = ?");
         $stmt->execute([$id_mesa]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if ($row) {
             return new Mesa(
-                $row['id_mesa'],
-                $row['numero_mesa'],
-                $row['capacidad'],
-                $row['ubicacion'],
-                $row['estado']
+                $row['id_historial_pedidomesa'],
+                $row['pedido_id'],
+                $row['fecha_entrega'],
+                $row['estado_entrega']
             );
         }
         return null;
     }
 
     public function insertar(Mesa $objeto): bool {
-        $sql = "INSERT INTO Grupo3_Mesa (numero_mesa, capacidad, ubicacion, estado) VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO Grupo3_Historial_Pedido (id_historial_pedidomesa, pedido_id, fecha_entrega, estado_entrega) VALUES (?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
-            $objeto->numero_mesa,
-            $objeto->capacidad,
-            $objeto->ubicacion,
-            $objeto->estado
-        ]);
-    }
-
-    public function actualizar(Mesa $objeto): bool {
-        $sql = "UPDATE Grupo3_Mesa SET numero_mesa = ?, capacidad = ?, ubicacion = ?, estado = ? WHERE id_mesa = ?";
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute([
-            $objeto->numero_mesa,
-            $objeto->capacidad,
-            $objeto->ubicacion,
-            $objeto->estado,
-            $objeto->id_mesa
+            $objeto->id_historial_pedidomesa,
+            $objeto->pedido_id,
+            $objeto->fecha_entrega,
+            $objeto->estado_entrega
         ]);
     }
 
     public function eliminar(int $id_mesa): bool {
-        $sql = "DELETE FROM Grupo3_Mesa WHERE id_mesa = ?";
+        $sql = "DELETE FROM Grupo3_Historial_Pedido WHERE pedido_id = ?";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$id_mesa]);
     }
