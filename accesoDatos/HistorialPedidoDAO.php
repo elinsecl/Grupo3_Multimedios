@@ -43,10 +43,9 @@ class HistorialPedidoDAO {
     }
 
     public function insertar(HistorialPedido $objeto): bool {
-        $sql = "INSERT INTO Grupo3_Historial_Pedido (id_historial_pedido, pedido_id, fecha_entrega, estado_entrega) VALUES (?, ?, ?, ?)";
+        $sql = "INSERT INTO Grupo3_Historial_Pedido ( pedido_id, fecha_entrega, estado_entrega) VALUES ( ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
-            $objeto->id_historial_pedido,
             $objeto->pedido_id,
             $objeto->fecha_entrega,
             $objeto->estado_entrega

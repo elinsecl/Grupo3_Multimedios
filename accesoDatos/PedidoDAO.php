@@ -60,6 +60,28 @@ class PedidoDAO {
             $objeto->estado,
             $objeto->metodo_pago
         ]);
+        
+    }
+
+    public function insertar2(Pedido $objeto): int|false {
+        $sql = "INSERT INTO Grupo3_Pedido (cliente_id, mesa_id, fecha_pedido, hora_pedido, total, estado, metodo_pago) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $this->pdo->prepare($sql);
+        $resultado = $stmt->execute([
+            $objeto->cliente_id,
+            $objeto->mesa_id,
+            $objeto->fecha_pedido,
+            $objeto->hora_pedido,
+            $objeto->total,
+            $objeto->estado,
+            $objeto->metodo_pago
+        ]);
+
+        if ($resultado) {
+            return $this->pdo->lastInsertId();
+        }
+
+        return true;
     }
 
     public function actualizar(Pedido $objeto): bool {

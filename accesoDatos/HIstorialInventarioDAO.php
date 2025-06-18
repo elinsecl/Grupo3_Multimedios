@@ -47,10 +47,9 @@ class HistorialInventarioDAO {
     }
 
     public function insertar(HistorialInventario $objeto): bool {
-        $sql = "INSERT INTO Grupo3_Historial_Inventario (id_historial_inventario, id_inventario, ingrediente_id, cambio_stock, fecha,tipo_cambio) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO Grupo3_Historial_Inventario (id_inventario, ingrediente_id, cambio_stock, fecha,tipo_cambio) VALUES ( ?, ?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
-            $objeto->id_historial_inventario,
             $objeto->id_inventario,
             $objeto->ingrediente_id,
             $objeto->cambio_stock,

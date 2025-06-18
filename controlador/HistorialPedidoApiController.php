@@ -5,10 +5,13 @@ require_once __DIR__.'/../modelo/HistorialPedido.php';
 
 class HistorialPedidoApiController {
 
+    
     private $dao;
+    private $dao2;
 
     public function __construct(){
         $this->dao = new HistorialPedidoDAO();
+        $this->dao2 = new HistorialPedidoDAO();
     }
 
 

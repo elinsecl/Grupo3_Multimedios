@@ -1,7 +1,6 @@
 <?php  
 
-    class HistorialInventario {
-          
+    class HistorialPedido {
     
     public $id_historial_pedido;
     public $pedido_id;
@@ -15,6 +14,6 @@
         $this->estado_entrega = $estado_entrega;
     }
 
-    }   
+}   
 
 ?>

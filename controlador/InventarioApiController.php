@@ -1,11 +1,16 @@
 <?php
 require_once __DIR__.'/../accesoDatos/InventarioDAO.php';
+require_once __DIR__.'/../accesoDatos/HistorialInventarioDAO.php';
+require_once __DIR__.'/../accesoDatos/HistorialInventarioDAO.php';
+require_once __DIR__.'/../modelo/HistorialInventario.php'; 
 
 class InventarioApiController {
     private $dao;
+    private $dao2;
 
     public function __construct() {
         $this->dao = new InventarioDAO();
+        $this->dao2 = new HistorialInventarioDAO();
     }
 
     public function manejarRequest() {
@@ -41,7 +46,32 @@ class InventarioApiController {
         }
     }
 
-    private function handlePostRequest() {
+    // private function handlePostRequest() {
+    //     $datos = json_decode(file_get_contents("php://input"), true);
+
+    //     if (!isset($datos['ingrediente_id'], $datos['cantidad_stock'], $datos['proveedor_id'])) {
+    //         http_response_code(400);
+    //         echo json_encode(["mensaje" => "Datos incompletos"]);
+    //         return;
+    //     }
+
+    //     $registro = new Inventario(
+    //         null,
+    //         $datos['ingrediente_id'],
+    //         $datos['cantidad_stock'],
+    //         $datos['fecha_entrada'] ?? date('Y-m-d H:i:s'),
+    //         $datos['proveedor_id']
+    //     );
+
+    //     if ($this->dao->insertar($registro)) {
+    //         http_response_code(201);
+    //         echo json_encode(["mensaje" => "Inventario creado"]);
+    //     } else {
+    //         http_response_code(500);
+    //         echo json_encode(["mensaje" => "Error al insertar"]);
+    //     }
+    // }
+ private function handlePostRequest() {
         $datos = json_decode(file_get_contents("php://input"), true);
 
         if (!isset($datos['ingrediente_id'], $datos['cantidad_stock'], $datos['proveedor_id'])) {
@@ -49,7 +79,7 @@ class InventarioApiController {
             echo json_encode(["mensaje" => "Datos incompletos"]);
             return;
         }
-
+        
         $registro = new Inventario(
             null,
             $datos['ingrediente_id'],
@@ -58,15 +88,34 @@ class InventarioApiController {
             $datos['proveedor_id']
         );
 
-        if ($this->dao->insertar($registro)) {
+        $registro_id = $this->dao->insertar2($registro); // Modifica tu método insertar() para retornar el ID
+
+         if ($registro_id !== false) {
+            // Crear objeto HistorialInventario
+             $historial = new HistorialInventario(
+                null,
+                $registro_id,
+                $datos['ingrediente_id'],
+                $datos['cantidad_stock'],
+                $datos['fecha_entrada'] ?? date('Y-m-d H:i:s'),
+                $datos['tipo_cambio'] ?? 'compra'
+             );
+
+            // Insertar historial (asegúrate de que dao2 esté correctamente inicializado)
+            $this->dao2->insertar($historial);
+
             http_response_code(201);
-            echo json_encode(["mensaje" => "Inventario creado"]);
+            echo json_encode([
+                "mensaje" => "Inventario e historial registrados exitosamente",
+                "pedido_id" => $registro_id
+            ]);
         } else {
             http_response_code(500);
-            echo json_encode(["mensaje" => "Error al insertar"]);
+            echo json_encode(["mensaje" => "Error al registrar el inventario"]);
         }
     }
 
+     
     private function handlePutRequest($id) {
         if (!$id) {
             http_response_code(400);

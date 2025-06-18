@@ -58,16 +58,16 @@ class HistorialInventarioApiController {
             return;
         }
 
-        $historial_pedido = new HistorialPedido(
+        $historial_inventario = new HistorialInventario(
             null,
             $datos['id_inventario'],
             $datos['ingrediente_id'],
             $datos['cambio_stock'],
-            $datos['fecha']
+            $datos['fecha'],
             $datos['tipo_cambio']
         );
 
-        if ($this->dao->insertar($historial_pedido)) {
+        if ($this->dao->insertar($historial_inventario)) {
             http_response_code(201);
             echo json_encode(["mensaje" => "historial de inventario creado exitosamente"]);
         } else {
