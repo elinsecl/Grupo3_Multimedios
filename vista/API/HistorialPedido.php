@@ -1,8 +1,8 @@
 <?php
 
-    require_once '../../controlador/HistorialPedApiController.php';
+    require_once '../../controlador/HistorialPedidoApiController.php';
 
-    $controlador = new HistorialPedApiController();
+    $controlador = new HistorialPedidoApiController();
     $controlador->manejarRequest();
 
 ?>

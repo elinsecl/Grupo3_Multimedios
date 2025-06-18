@@ -1,8 +1,8 @@
 <?php
 
-    require_once '../../controlador/HistorialInvApiController.php';
+    require_once '../../controlador/HistorialInventarioApiController.php';
 
-    $controlador = new HistorialInvApiController();
+    $controlador = new HistorialInventarioApiController();
     $controlador->manejarRequest();
 
 ?>
