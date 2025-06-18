@@ -26,7 +26,7 @@ class HistorialPedidoDAO {
         return $result;
     }
 
-    public function obtenerPorId(int $pedido_id): ?HistorialPedido {
+    public function obtenerPorPedidoId(int $pedido_id): ?HistorialPedido {
         $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Pedido WHERE pedido_id = ?");
         $stmt->execute([$pedido_id]);
 
@@ -41,6 +41,23 @@ class HistorialPedidoDAO {
         }
         return null;
     }
+
+    public function obtenerPorIdHistorial(int $id_historial_pedido): ?HistorialPedido {
+        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Pedido WHERE id_historial_pedido = ?");
+        $stmt->execute([$id_historial_pedido]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            return new HistorialPedido(
+                $row['id_historial_pedido'],
+                $row['pedido_id'],
+                $row['fecha_entrega'],
+                $row['estado_entrega']
+            );
+        }
+        return null;
+    }   
+
 
     public function insertar(HistorialPedido $objeto): bool {
         $sql = "INSERT INTO Grupo3_Historial_Pedido ( pedido_id, fecha_entrega, estado_entrega) VALUES ( ?, ?, ?)";
@@ -57,5 +74,15 @@ class HistorialPedidoDAO {
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$id_historial_pedido]);
     }
+
+    public function actualizarEstadoEntrega(int $id_historial_pedido, string $nuevoEstado): bool {
+        $sql = "UPDATE Grupo3_Historial_Pedido 
+                SET estado_entrega = ?, fecha_entrega = NOW() 
+                WHERE id_historial_pedido = ?";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute([$nuevoEstado, $id_historial_pedido]);
+    }
+
+
 }
 ?>
