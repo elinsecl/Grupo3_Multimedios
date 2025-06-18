@@ -53,6 +53,23 @@ class InventarioDAO {
         ]);
     }
 
+    public function insertar2(Inventario $obj): int|false {
+        $sql = "INSERT INTO Grupo3_Inventario (ingrediente_id, cantidad_stock, fecha_entrada, proveedor_id) VALUES (?, ?, ?, ?)";
+        $stmt = $this->pdo->prepare($sql);
+        $resultado = $stmt->execute([
+            $obj->ingrediente_id,
+            $obj->cantidad_stock,
+            $obj->fecha_entrada ?? date('Y-m-d H:i:s'),
+            $obj->proveedor_id
+        ]);
+
+        if ($resultado) {
+            return $this->pdo->lastInsertId();
+        }
+
+        return true;
+    }
+
     public function actualizar(Inventario $obj): bool {
         $sql = "UPDATE Grupo3_Inventario SET ingrediente_id = ?, cantidad_stock = ?, fecha_entrada = ?, proveedor_id = ? WHERE id_inventario = ?";
         $stmt = $this->pdo->prepare($sql);
