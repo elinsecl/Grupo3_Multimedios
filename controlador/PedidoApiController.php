@@ -2,13 +2,17 @@
 
 require_once __DIR__.'/../accesoDatos/PedidoDAO.php';
 require_once __DIR__.'/../modelo/Pedido.php';
+require_once __DIR__.'/../accesoDatos/HistorialPedidoDAO.php';
+require_once __DIR__.'/../modelo/HistorialPedido.php'; 
 
 class PedidoApiController {
 
     private $dao;
+    private $dao2;
 
     public function __construct(){
         $this->dao = new PedidoDAO();
+        $this->dao2 = new HistorialPedidoDAO();
     }
 
     public function manejarRequest(){
@@ -72,14 +76,31 @@ class PedidoApiController {
             $datos['metodo_pago']
         );
 
-        if ($this->dao->insertar($pedido)) {
+       $pedidoId = $this->dao->insertar2($pedido); // Modifica tu método insertar() para retornar el ID
+
+         if ($pedidoId !== false) {
+            // Crear objeto HistorialPedido
+            $historial = new HistorialPedido(
+                null,
+                $pedidoId,
+                $datos['fecha_entrega'] ?? date('Y-m-d H:i:s'),
+                $datos['estado_entrega'] ?? 'pendiente'
+            );
+
+            // Insertar historial (asegúrate de que dao2 esté correctamente inicializado)
+            $this->dao2->insertar($historial);
+
             http_response_code(201);
-            echo json_encode(["mensaje" => "Pedido creado exitosamente"]);
+            echo json_encode([
+                "mensaje" => "Pedido e historial creados exitosamente",
+                "pedido_id" => $pedidoId
+            ]);
         } else {
             http_response_code(500);
             echo json_encode(["mensaje" => "Error al crear el pedido"]);
         }
     }
+
 
     private function handlePutRequest(?int $id){
         if (!$id) {
