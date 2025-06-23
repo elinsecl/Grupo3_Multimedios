@@ -20,15 +20,25 @@ class CategoriaApiController {
      * Maneja las solicitudes HTTP (GET, POST, PUT, DELETE) para el recurso Categoria.
      */
     public function manejarRequest(){
+        $metodosPermitidos = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'];
         $metodo = $_SERVER['REQUEST_METHOD'];
-        $id = $_GET['id_categoria'] ?? null; // Obtiene el ID si está presente en la URL (para GET, PUT, DELETE)
+        
+        if (!in_array($metodo, $metodosPermitidos)) {
+            http_response_code(405);
+            header('Allow: ' . implode(', ', $metodosPermitidos));
+            echo json_encode(["mensaje" => "Método no permitido"]);
+            return;
+        }
+
         // Manejo de la solicitud OPTIONS para el "preflight" de CORS
         if ($metodo === 'OPTIONS') {
             http_response_code(200);
-            exit(); // Termina aquí para el preflight
+            exit();
         }
 
-        header('Content-Type: application/json'); // Establece el tipo de contenido como JSON
+        header('Content-Type: application/json');
+
+        $id = $_GET['id_categoria'] ?? null;
 
         switch ($metodo) {
             case 'GET':
@@ -46,26 +56,41 @@ class CategoriaApiController {
             case 'DELETE':
                 $this->handleDeleteRequest($id);
                 break;
-
-            default:
-                http_response_code(405); // Método no permitido
-                echo json_encode(["mensaje" => "Método no permitido"]);
-                break;
         }
     }
 
-    /**
-     * Maneja las solicitudes GET.
-     * Si se proporciona un ID, obtiene una categoría específica; de lo contrario, obtiene todas las categorías.
-     * @param int|null $id_categoria El ID de la categoría a obtener.
-     */
+    private function getJsonInput(){
+        $input = file_get_contents("php://input");
+        $datos = json_decode($input, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            http_response_code(400);
+            echo json_encode(["mensaje" => "JSON inválido"]);
+            exit();
+        }
+        
+        return $datos;
+    }
+
+    private function validarDatosCategoria(array $datos): bool {
+        if (empty($datos['nombre_categoria']) || strlen($datos['nombre_categoria']) > 50) {
+            return false;
+        }
+        
+        if (isset($datos['descripcion']) && strlen($datos['descripcion']) > 255) {
+            return false;
+        }
+        
+        return true;
+    }
+
     private function handleGetRequest(?int $id_categoria){
         if ($id_categoria) {
             $categoria = $this->dao->obtenerPorId($id_categoria);
             if ($categoria) {
                 echo json_encode($categoria);
             } else {
-                http_response_code(404); // No encontrado
+                http_response_code(404);
                 echo json_encode(["mensaje" => "Categoría no encontrada"]);
             }
         } else {
@@ -74,55 +99,77 @@ class CategoriaApiController {
         }
     }
 
-    /**
-     * Maneja las solicitudes POST para crear una nueva categoría.
-     */
     private function handlePostRequest(){
-        $datos = json_decode(file_get_contents("php://input"), true);
+        $datos = $this->getJsonInput();
 
-        // Validar que los datos necesarios estén presentes
         if (!isset($datos['nombre_categoria'], $datos['descripcion'])) {
-            http_response_code(400); // Bad Request
+            http_response_code(400);
             echo json_encode(["mensaje" => "Datos incompletos para crear categoría"]);
             return;
         }
 
+        if (!$this->validarDatosCategoria($datos)) {
+            http_response_code(400);
+            echo json_encode(["mensaje" => "Datos de categoría inválidos"]);
+            return;
+        }
+
+        if ($this->dao->existeCategoriaConNombre($datos['nombre_categoria'])) {
+            http_response_code(409);
+            echo json_encode(["mensaje" => "Ya existe una categoría con ese nombre"]);
+            return;
+        }
+
         $categoria = new Categoria(
-            null, // id_categoria es null para la inserción
+            null,
             $datos['nombre_categoria'],
             $datos['descripcion']
         );
 
         if ($this->dao->insertar($categoria)) {
-            http_response_code(201); // Creado
+            http_response_code(201);
             echo json_encode(["mensaje" => "Categoría creada exitosamente"]);
         } else {
-            http_response_code(500); // Error interno del servidor
+            http_response_code(500);
             echo json_encode(["mensaje" => "Error al crear la categoría"]);
         }
     }
 
-    /**
-     * Maneja las solicitudes PUT para actualizar una categoría existente.
-     * @param int|null $id_categoria El ID de la categoría a actualizar.
-     */
     private function handlePutRequest(?int $id_categoria){
         if (!$id_categoria) {
-            http_response_code(400); // Bad Request
+            http_response_code(400);
             echo json_encode(["mensaje" => "ID de categoría necesario para actualizar"]);
             return;
         }
 
-        $datos = json_decode(file_get_contents("php://input"), true);
+        if (!$this->dao->obtenerPorId($id_categoria)) {
+            http_response_code(404);
+            echo json_encode(["mensaje" => "Categoría no encontrada"]);
+            return;
+        }
 
-        // Validar que los datos necesarios estén presentes para la actualización
+        $datos = $this->getJsonInput();
+
         if (!isset($datos['nombre_categoria'], $datos['descripcion'])) {
-            http_response_code(400); // Bad Request
+            http_response_code(400);
             echo json_encode(["mensaje" => "Datos incompletos para actualizar categoría"]);
             return;
         }
 
-        // Crear un objeto Categoria con el ID y los datos actualizados
+        if (!$this->validarDatosCategoria($datos)) {
+            http_response_code(400);
+            echo json_encode(["mensaje" => "Datos de categoría inválidos"]);
+            return;
+        }
+
+        // Verificar si el nuevo nombre ya existe en otra categoría
+        $categoriaExistente = $this->dao->obtenerPorNombre($datos['nombre_categoria']);
+        if ($categoriaExistente && $categoriaExistente->getIdCategoria() != $id_categoria) {
+            http_response_code(409);
+            echo json_encode(["mensaje" => "Ya existe otra categoría con ese nombre"]);
+            return;
+        }
+
         $categoria = new Categoria(
             $id_categoria,
             $datos['nombre_categoria'],
@@ -130,33 +177,40 @@ class CategoriaApiController {
         );
 
         if ($this->dao->actualizar($categoria)) {
-            http_response_code(200); // OK
+            http_response_code(200);
             echo json_encode(["mensaje" => "Categoría actualizada exitosamente"]);
         } else {
-            http_response_code(500); // Error interno del servidor
-            echo json_encode(["mensaje" => "Error al actualizar la categoría o categoría no encontrada"]);
+            http_response_code(500);
+            echo json_encode(["mensaje" => "Error al actualizar la categoría"]);
         }
     }
 
-    /**
-     * Maneja las solicitudes DELETE para eliminar una categoría.
-     * @param int|null $id_categoria El ID de la categoría a eliminar.
-     */
     private function handleDeleteRequest(?int $id_categoria){
         if (!$id_categoria) {
-            http_response_code(400); // Bad Request
+            http_response_code(400);
             echo json_encode(["mensaje" => "ID de categoría necesario para eliminar"]);
             return;
         }
 
+        if (!$this->dao->obtenerPorId($id_categoria)) {
+            http_response_code(404);
+            echo json_encode(["mensaje" => "Categoría no encontrada"]);
+            return;
+        }
+
+        if ($this->dao->tienePlatillosAsociados($id_categoria)) {
+            http_response_code(409);
+            echo json_encode(["mensaje" => "No se puede eliminar la categoría porque tiene platillos asociados"]);
+            return;
+        }
+
         if ($this->dao->eliminar($id_categoria)) {
-            http_response_code(200); // OK
+            http_response_code(200);
             echo json_encode(["mensaje" => "Categoría eliminada exitosamente"]);
         } else {
-            http_response_code(500); // Error interno del servidor
-            echo json_encode(["mensaje" => "Error al eliminar la categoría o categoría no encontrada"]);
+            http_response_code(500);
+            echo json_encode(["mensaje" => "Error al eliminar la categoría"]);
         }
     }
 }
-
 ?>

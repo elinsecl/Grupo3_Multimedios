@@ -48,7 +48,52 @@ class CategoriaDAO {
                 $row['descripcion']
             );
         }
-        return null; // Retorna null si no se encuentra la categoría
+        return null;
+    }
+
+    /**
+     * Obtiene una categoría por su nombre.
+     *
+     * @param string $nombre El nombre de la categoría a buscar.
+     * @return Categoria|null Un objeto Categoria si se encuentra, o null si no.
+     */
+    public function obtenerPorNombre(string $nombre): ?Categoria {
+        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Categoria WHERE nombre_categoria = ?;");
+        $stmt->execute([$nombre]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            return new Categoria(
+                $row['id_categoria'],
+                $row['nombre_categoria'],
+                $row['descripcion']
+            );
+        }
+        return null;
+    }
+
+    /**
+     * Verifica si existe una categoría con el nombre especificado.
+     *
+     * @param string $nombre El nombre de la categoría a verificar.
+     * @return bool True si existe, false si no.
+     */
+    public function existeCategoriaConNombre(string $nombre): bool {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM Grupo3_Categoria WHERE nombre_categoria = ?");
+        $stmt->execute([$nombre]);
+        return $stmt->fetchColumn() > 0;
+    }
+
+    /**
+     * Verifica si una categoría tiene platillos asociados.
+     *
+     * @param int $id_categoria El ID de la categoría a verificar.
+     * @return bool True si tiene platillos asociados, false si no.
+     */
+    public function tienePlatillosAsociados(int $id_categoria): bool {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM Grupo3_Platillo WHERE id_categoria = ?");
+        $stmt->execute([$id_categoria]);
+        return $stmt->fetchColumn() > 0;
     }
 
     /**
@@ -78,7 +123,7 @@ class CategoriaDAO {
         return $stmt->execute([
             $objeto->nombre_categoria,
             $objeto->descripcion,
-            $objeto->id_categoria // El ID para identificar el registro a actualizar
+            $objeto->id_categoria
         ]);
     }
 
@@ -90,24 +135,15 @@ class CategoriaDAO {
      */
     public function eliminar(int $id_categoria): bool {
         try {
-            // Preparar la sentencia para eliminar la categoría
             $stmt = $this->pdo->prepare("DELETE FROM Grupo3_Categoria WHERE id_categoria = :id");
             $stmt->bindParam(':id', $id_categoria, PDO::PARAM_INT);
             $stmt->execute();
 
-            // Verificar si alguna fila fue afectada
-            if ($stmt->rowCount() > 0) {
-                return true; // Categoría eliminada exitosamente
-            } else {
-                return false; // No se encontró la categoría con ese ID
-            }
+            return $stmt->rowCount() > 0;
         } catch (PDOException $e) {
-            // En caso de error, se registra en el log
             error_log("Error al eliminar categoría: " . $e->getMessage());
-            return false; // Retorna false si hubo un error
+            return false;
         }
     }
-
 }
-
 ?>
