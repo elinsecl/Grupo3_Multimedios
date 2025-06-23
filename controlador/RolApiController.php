@@ -1,12 +1,13 @@
 <?php
+
+
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 
-require_once __DIR__.'/../accesoDatos/RolDAO.php';
-require_once __DIR__.'/../modelo/Rol.php'; 
-
+require_once __DIR__.'/../accesoDatos/RolDao.php'; 
+require_once __DIR__.'/../modelo/Rol.php';       
 class RolApiController {
 
     private $dao;
@@ -16,11 +17,17 @@ class RolApiController {
     }
 
     /**
-     * Maneja las solicitudes HTTP (GET, POST, PUT, DELETE) para el recurso Rol.
+     * Maneja las solicitudes HTTP (GET, POST, PUT, DELETE, OPTIONS) para el recurso Rol.
      */
     public function manejarRequest(){
         $metodo = $_SERVER['REQUEST_METHOD'];
-        $id = $_GET['id_rol'] ?? null; // Obtiene el ID si está presente en la URL (para GET, PUT, DELETE)
+        $id = $_GET['id_rol'] ?? null; // Obtiene el ID si está presente en la URL
+
+        // Manejo de la solicitud OPTIONS para el "preflight" de CORS
+        if ($metodo === 'OPTIONS') {
+            http_response_code(200);
+            exit(); // Termina la ejecución para el preflight
+        }
 
         header('Content-Type: application/json'); // Establece el tipo de contenido como JSON
 
@@ -44,7 +51,7 @@ class RolApiController {
             default:
                 http_response_code(405); // Método no permitido
                 echo json_encode(["mensaje" => "Método no permitido"]);
-                break;
+                exit();
         }
     }
 
@@ -57,15 +64,22 @@ class RolApiController {
         if ($id_rol) {
             $rol = $this->dao->obtenerPorId($id_rol); // Llama al DAO de Rol
             if ($rol) {
-                echo json_encode($rol);
+                // --- MODIFICACIÓN: Llamar a toArray() para serializar el objeto Rol ---
+                echo json_encode($rol->toArray());
             } else {
                 http_response_code(404); // No encontrado
                 echo json_encode(["mensaje" => "Rol no encontrado"]); // Mensaje específico para Rol
             }
         } else {
-            $roles = $this->dao->obtenerDatos(); // Llama al DAO de Rol
-            echo json_encode($roles);
+            $roles = $this->dao->obtenerDatos(); // Llama al DAO de Rol 
+
+            $rolesArray = array_map(function($rol_obj) {
+                return $rol_obj->toArray();
+            }, $roles);
+
+            echo json_encode($rolesArray);
         }
+        exit(); 
     }
 
     /**
@@ -74,14 +88,14 @@ class RolApiController {
     private function handlePostRequest(){
         $datos = json_decode(file_get_contents("php://input"), true);
 
-        // Validar que los datos necesarios estén presentes para Rol 
+        // Validar que los datos necesarios estén presentes para Rol
         if (!isset($datos['nombre_rol'], $datos['descripcion'])) {
             http_response_code(400); // Bad Request
-            echo json_encode(["mensaje" => "Datos incompletos para crear rol. Se requieren nombre, descripcion."]);
-            return;
+            echo json_encode(["mensaje" => "Datos incompletos para crear rol. Se requieren nombre_rol, descripcion."]);
+            exit(); 
         }
-        
-        // Crea un objeto Rol con los datos recibidos }
+
+        // Crea un objeto Rol con los datos recibidos
         $rol = new Rol(
             null, // id_rol es null para la inserción
             $datos['nombre_rol'],
@@ -89,12 +103,13 @@ class RolApiController {
         );
 
         if ($this->dao->insertar($rol)) { // Llama al DAO de Rol
-            http_response_code(201); 
-            echo json_encode(["mensaje" => "Rol creado exitosamente"]); 
+            http_response_code(201);
+            echo json_encode(["mensaje" => "Rol creado exitosamente"]);
         } else {
             http_response_code(500); // Error interno del servidor
             echo json_encode(["mensaje" => "Error al crear el rol"]);
         }
+        exit(); 
     }
 
     /**
@@ -104,17 +119,17 @@ class RolApiController {
     private function handlePutRequest(?int $id_rol){
         if (!$id_rol) {
             http_response_code(400); // Bad Request
-            echo json_encode(["mensaje" => "ID de rol necesario para actualizar"]); 
-            return;
+            echo json_encode(["mensaje" => "ID de rol necesario para actualizar."]);
+            exit(); 
         }
 
         $datos = json_decode(file_get_contents("php://input"), true);
 
         // Validar que los datos necesarios estén presentes para la actualización de Rol
         if (!isset($datos['nombre_rol'], $datos['descripcion'])) {
-            http_response_code(400); // Bad Request
-            echo json_encode(["mensaje" => "Datos incompletos para actualizar rol. Se requieren nombre, descripcion."]); 
-            return;
+             http_response_code(400); // Bad Request
+             echo json_encode(["mensaje" => "Datos incompletos para actualizar rol. Se requieren nombre_rol, descripcion."]);
+             exit();
         }
 
         // Crear un objeto Rol con el ID y los datos actualizados
@@ -126,11 +141,12 @@ class RolApiController {
 
         if ($this->dao->actualizar($rol)) { // Llama al DAO de Rol
             http_response_code(200); // OK
-            echo json_encode(["mensaje" => "Rol actualizado exitosamente"]); 
+            echo json_encode(["mensaje" => "Rol actualizado exitosamente"]);
         } else {
             http_response_code(500); // Error interno del servidor
-            echo json_encode(["mensaje" => "Error al actualizar el rol o rol no encontrado"]); 
+            echo json_encode(["mensaje" => "Error al actualizar el rol o rol no encontrado"]);
         }
+        exit(); 
     }
 
     /**
@@ -140,8 +156,8 @@ class RolApiController {
     private function handleDeleteRequest(?int $id_rol){
         if (!$id_rol) {
             http_response_code(400); // Bad Request
-            echo json_encode(["mensaje" => "ID de rol necesario para eliminar"]); 
-            return;
+            echo json_encode(["mensaje" => "ID de rol necesario para eliminar."]);
+            exit(); 
         }
 
         if ($this->dao->eliminar($id_rol)) { // Llama al DAO de Rol
@@ -149,8 +165,14 @@ class RolApiController {
             echo json_encode(["mensaje" => "Rol eliminado exitosamente"]);
         } else {
             http_response_code(500); // Error interno del servidor
-            echo json_encode(["mensaje" => "Error al eliminar el rol o rol no encontrado"]); 
+            echo json_encode(["mensaje" => "Error al eliminar el rol o rol no encontrado"]);
         }
+        exit();
     }
 }
 
+// Instanciar y manejar la solicitud
+$controlador = new RolApiController();
+$controlador->manejarRequest();
+
+?>
