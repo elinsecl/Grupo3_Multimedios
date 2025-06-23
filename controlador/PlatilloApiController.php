@@ -22,6 +22,11 @@ class PlatilloApiController {
     public function manejarRequest(){
         $metodo = $_SERVER['REQUEST_METHOD'];
         $id = $_GET['id_platillo'] ?? null; // Obtiene el ID si está presente en la URL (para GET, PUT, DELETE)
+        // Manejo de la solicitud OPTIONS para el "preflight" de CORS
+        if ($metodo === 'OPTIONS') {
+            http_response_code(200);
+            exit(); // Termina aquí para el preflight
+        }
 
         header('Content-Type: application/json'); // Establece el tipo de contenido como JSON
 
