@@ -1,18 +1,28 @@
 
 <?php
 
-class Usuario{
-    public $id_usuario ;    
-    public $nombre ;
+// En tu archivo: Grupo3_Multimedios/modelo/Usuario.php
+
+class Usuario {
+    public $id_usuario;
+    public $nombre;
     public $correo;
-    public $password;
+    public $password; // Cuidado con exponer esto
     public $tipo_usuario;
     public $id_rol;
     public $fecha_creacion;
     public $estado;
-  
 
-    public function __construct($id_usuario,$nombre,$correo,$password,$tipo_usuario,$id_rol,$fecha_creacion,$estado){
+    public function __construct(
+        $id_usuario = null, 
+        $nombre = null, 
+        $correo = null, 
+        $password = null, 
+        $tipo_usuario = null, 
+        $id_rol = null, 
+        $fecha_creacion = null, 
+        $estado = null
+    ) {
         $this->id_usuario = $id_usuario;
         $this->nombre = $nombre;
         $this->correo = $correo;
@@ -23,6 +33,31 @@ class Usuario{
         $this->estado = $estado;
     }
 
+    public function toArray() {
+        return [
+            'id_usuario' => $this->id_usuario,
+            'nombre' => $this->nombre,
+            'correo' => $this->correo,
+            'password' => $this->password, 
+            'tipo_usuario' => $this->tipo_usuario,
+            'id_rol' => $this->id_rol,
+            'fecha_creacion' => $this->fecha_creacion,
+            'estado' => $this->estado
+        ];
+    }
+
+    public function toPublicArray() {
+        return [
+            'id_usuario' => $this->id_usuario,
+            'nombre' => $this->nombre,
+            'correo' => $this->correo,
+            //no password para la segurity
+            'tipo_usuario' => $this->tipo_usuario,
+            'id_rol' => $this->id_rol,
+            'fecha_creacion' => $this->fecha_creacion,
+            'estado' => $this->estado
+        ];
+    }
 }
 
 ?>
