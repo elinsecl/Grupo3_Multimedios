@@ -9,7 +9,15 @@ class Platillo {
     public $estado;
     public $imagen_url;
 
-    public function __construct($id_platillo, $nombre_platillo, $descripcion, $precio, $id_categoria, $estado, $imagen_url) {
+    public function __construct(
+        $id_platillo = null, 
+        $nombre_platillo = null, 
+        $descripcion = null, 
+        $precio = null, 
+        $id_categoria = null, 
+        $estado = null, 
+        $imagen_url = null
+    ) {
         $this->id_platillo = $id_platillo;
         $this->nombre_platillo = $nombre_platillo;
         $this->descripcion = $descripcion;
@@ -18,6 +26,30 @@ class Platillo {
         $this->estado = $estado;
         $this->imagen_url = $imagen_url;
     }
-}
 
-?>
+    public function toArray() {
+        return [
+            'id_platillo' => $this->id_platillo,
+            'nombre_platillo' => $this->nombre_platillo,
+            'descripcion' => $this->descripcion,
+            'precio' => $this->precio,
+            'id_categoria' => $this->id_categoria,
+            'estado' => $this->estado,
+            'imagen_url' => $this->imagen_url
+        ];
+    }
+
+    public function toPublicArray() {
+        return [
+            'id_platillo' => $this->id_platillo,
+            'nombre_platillo' => $this->nombre_platillo,
+            'descripcion' => $this->descripcion,
+            'precio' => $this->precio,
+            'id_categoria' => $this->id_categoria,
+            'estado' => $this->estado,
+            'imagen_url' => $this->imagen_url
+            // Todos los campos son públicos en este caso
+            // Si hubiera campos sensibles, los omitiríamos aquí
+        ];
+    }
+}

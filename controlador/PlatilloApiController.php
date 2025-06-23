@@ -1,7 +1,7 @@
 <?php
 
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 
@@ -16,19 +16,18 @@ class PlatilloApiController {
         $this->dao = new PlatilloDAO();
     }
 
-    /**
-     * Maneja las solicitudes HTTP (GET, POST, PUT, DELETE) para el recurso Platillo.
-     */
     public function manejarRequest(){
         $metodo = $_SERVER['REQUEST_METHOD'];
-        $id = $_GET['id_platillo'] ?? null; // Obtiene el ID si está presente en la URL (para GET, PUT, DELETE)
+        $id = $_GET['id_platillo'] ?? null;
+
         // Manejo de la solicitud OPTIONS para el "preflight" de CORS
         if ($metodo === 'OPTIONS') {
             http_response_code(200);
             exit(); // Termina aquí para el preflight
         }
 
-        header('Content-Type: application/json'); // Establece el tipo de contenido como JSON
+        // Establece el tipo de contenido como JSON para las respuestas de datos
+        header('Content-Type: application/json');
 
         switch ($metodo) {
             case 'GET':
@@ -50,121 +49,126 @@ class PlatilloApiController {
             default:
                 http_response_code(405); // Método no permitido
                 echo json_encode(["mensaje" => "Método no permitido"]);
-                break;
+                exit(); // Termina después de enviar la respuesta
         }
     }
 
-    /**
-     * Maneja las solicitudes GET.
-     * Si se proporciona un ID, obtiene un platillo específico; de lo contrario, obtiene todos los platillos.
-     * @param int|null $id_platillo El ID del platillo a obtener.
-     */
     private function handleGetRequest(?int $id_platillo){
         if ($id_platillo) {
             $platillo = $this->dao->obtenerPorId($id_platillo);
             if ($platillo) {
-                echo json_encode($platillo);
+                echo json_encode($platillo->toPublicArray());
             } else {
-                http_response_code(404); // No encontrado
+                http_response_code(404);
                 echo json_encode(["mensaje" => "Platillo no encontrado"]);
             }
         } else {
+            // Obtener todos los platillos
             $platillos = $this->dao->obtenerDatos();
-            echo json_encode($platillos);
+
+            // Mapear cada objeto Platillo a su representación de array público para JSON
+            $platillosArray = array_map(function($platillo) {
+                return $platillo->toPublicArray();
+            }, $platillos);
+
+            echo json_encode($platillosArray);
         }
+        exit(); // Termina el script aquí para evitar cualquier salida adicional
     }
 
-    /**
-     * Maneja las solicitudes POST para crear un nuevo platillo.
-     */
     private function handlePostRequest(){
         $datos = json_decode(file_get_contents("php://input"), true);
 
-        // Validar que los datos necesarios estén presentes
-        if (!isset($datos['nombre_platillo'], $datos['descripcion'], $datos['precio'], $datos['id_categoria'], $datos['estado'], $datos['imagen_url'])) {
-            http_response_code(400); // Bad Request
-            echo json_encode(["mensaje" => "Datos incompletos para crear platillo"]);
-            return;
+        if (!isset($datos['nombre_platillo'], $datos['descripcion'], $datos['precio'], $datos['id_categoria'], $datos['estado'])) {
+            http_response_code(400);
+            echo json_encode(["mensaje" => "Datos incompletos para crear platillo. Se requieren nombre_platillo, descripcion, precio, id_categoria y estado."]);
+            exit();
         }
 
+        $imagen_url = $datos['imagen_url'] ?? null;
+
         $platillo = new Platillo(
-            null, // id_platillo es null para la inserción
+            null, // id_platillo es autoincremental
             $datos['nombre_platillo'],
             $datos['descripcion'],
-            $datos['precio'], 
+            $datos['precio'],
             $datos['id_categoria'],
             $datos['estado'],
-            $datos['imagen_url']
+            $imagen_url
         );
 
         if ($this->dao->insertar($platillo)) {
-            http_response_code(201); // Creado
+            http_response_code(201);
             echo json_encode(["mensaje" => "Platillo creado exitosamente"]);
         } else {
-            http_response_code(500); // Error interno del servidor
+            http_response_code(500);
             echo json_encode(["mensaje" => "Error al crear el platillo"]);
         }
+        exit();
     }
 
-    /**
-     * Maneja las solicitudes PUT para actualizar un platillo existente.
-     * @param int|null $id_platillo El ID del platillo a actualizar.
-     */
     private function handlePutRequest(?int $id_platillo){
         if (!$id_platillo) {
-            http_response_code(400); // Bad Request
-            echo json_encode(["mensaje" => "ID de platillo necesario para actualizar"]);
-            return;
+            http_response_code(400);
+            echo json_encode(["mensaje" => "ID de platillo necesario para actualizar en la URL."]);
+            exit();
         }
 
         $datos = json_decode(file_get_contents("php://input"), true);
 
-        // Validar que los datos necesarios estén presentes para la actualización
-        if (!isset($datos['nombre_platillo'], $datos['descripcion'], $datos['precio'], $datos['id_categoria'], $datos['estado'], $datos['imagen_url'])) {
-            http_response_code(400); // Bad Request
-            echo json_encode(["mensaje" => "Datos incompletos para actualizar platillo"]);
-            return;
+        if (!isset($datos['nombre_platillo'], $datos['descripcion'], $datos['precio'], $datos['id_categoria'], $datos['estado'])) {
+             http_response_code(400);
+             echo json_encode(["mensaje" => "Datos incompletos para actualizar platillo. Se requieren nombre_platillo, descripcion, precio, id_categoria y estado."]);
+             exit();
         }
 
-        // Crear un objeto Platillo con el ID y los datos actualizados
+        $platilloExistente = $this->dao->obtenerPorId($id_platillo);
+        if (!$platilloExistente) {
+            http_response_code(404);
+            echo json_encode(["mensaje" => "Platillo a actualizar no encontrado."]);
+            exit();
+        }
+
+        $imagen_url = isset($datos['imagen_url']) ? $datos['imagen_url'] : $platilloExistente->imagen_url;
+
         $platillo = new Platillo(
             $id_platillo,
             $datos['nombre_platillo'],
             $datos['descripcion'],
-            $datos['precio'], 
+            $datos['precio'],
             $datos['id_categoria'],
             $datos['estado'],
-            $datos['imagen_url']
+            $imagen_url
         );
 
         if ($this->dao->actualizar($platillo)) {
-            http_response_code(200); // OK
+            http_response_code(200);
             echo json_encode(["mensaje" => "Platillo actualizado exitosamente"]);
         } else {
-            http_response_code(500); // Error interno del servidor
+            http_response_code(500);
             echo json_encode(["mensaje" => "Error al actualizar el platillo o platillo no encontrado"]);
         }
+        exit();
     }
 
-    /**
-     * Maneja las solicitudes DELETE para eliminar un platillo.
-     * @param int|null $id_platillo El ID del platillo a eliminar.
-     */
     private function handleDeleteRequest(?int $id_platillo){
         if (!$id_platillo) {
-            http_response_code(400); // Bad Request
-            echo json_encode(["mensaje" => "ID de platillo necesario para eliminar"]);
-            return;
+            http_response_code(400);
+            echo json_encode(["mensaje" => "ID de platillo necesario para eliminar en la URL."]);
+            exit();
         }
 
         if ($this->dao->eliminar($id_platillo)) {
-            http_response_code(200); // OK
+            http_response_code(200);
             echo json_encode(["mensaje" => "Platillo eliminado exitosamente"]);
         } else {
-            http_response_code(500); // Error interno del servidor
+            http_response_code(500);
             echo json_encode(["mensaje" => "Error al eliminar el platillo o platillo no encontrado"]);
         }
+        exit();
     }
 }
 
-?>
+// Instanciar y manejar la solicitud
+$controlador = new PlatilloApiController();
+$controlador->manejarRequest();
