@@ -85,16 +85,13 @@ class PlatilloApiController {
             exit();
         }
 
-        $imagen_url = $datos['imagen_url'] ?? null;
-
         $platillo = new Platillo(
             null, // id_platillo es autoincremental
             $datos['nombre_platillo'],
             $datos['descripcion'],
             $datos['precio'],
             $datos['id_categoria'],
-            $datos['estado'],
-            $imagen_url
+            $datos['estado']
         );
 
         if ($this->dao->insertar($platillo)) {
@@ -129,16 +126,13 @@ class PlatilloApiController {
             exit();
         }
 
-        $imagen_url = isset($datos['imagen_url']) ? $datos['imagen_url'] : $platilloExistente->imagen_url;
-
         $platillo = new Platillo(
             $id_platillo,
             $datos['nombre_platillo'],
             $datos['descripcion'],
             $datos['precio'],
             $datos['id_categoria'],
-            $datos['estado'],
-            $imagen_url
+            $datos['estado']
         );
 
         if ($this->dao->actualizar($platillo)) {

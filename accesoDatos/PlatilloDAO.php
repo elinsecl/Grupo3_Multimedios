@@ -27,8 +27,7 @@ class PlatilloDAO {
                 $row['descripcion'],
                 $row['precio'],
                 $row['id_categoria'],
-                $row['estado'],
-                $row['imagen_url']
+                $row['estado']
             );
         }
         return $result;
@@ -52,8 +51,7 @@ class PlatilloDAO {
                 $row['descripcion'],
                 $row['precio'],
                 $row['id_categoria'],
-                $row['estado'],
-                $row['imagen_url']
+                $row['estado']
             );
         }
         return null; // Retorna null si no se encuentra el platillo
@@ -66,15 +64,14 @@ class PlatilloDAO {
      * @return bool True si la inserción fue exitosa, false en caso contrario.
      */
     public function insertar(Platillo $objeto): bool {
-        $sql = "INSERT INTO Grupo3_Platillo (nombre_platillo, descripcion, precio, id_categoria, estado, imagen_url) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO Grupo3_Platillo (nombre_platillo, descripcion, precio, id_categoria, estado) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             $objeto->nombre_platillo,
             $objeto->descripcion,
             $objeto->precio,
             $objeto->id_categoria,
-            $objeto->estado,
-            $objeto->imagen_url
+            $objeto->estado
         ]);
     }
 
@@ -85,7 +82,7 @@ class PlatilloDAO {
      * @return bool True si la actualización fue exitosa, false en caso contrario.
      */
     public function actualizar(Platillo $objeto): bool {
-        $sql = "UPDATE Grupo3_Platillo SET nombre_platillo = ?, descripcion = ?, precio = ?, id_categoria = ?, estado = ?, imagen_url = ? WHERE id_platillo = ?";
+        $sql = "UPDATE Grupo3_Platillo SET nombre_platillo = ?, descripcion = ?, precio = ?, id_categoria = ?, estado = ? WHERE id_platillo = ?";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             $objeto->nombre_platillo,
@@ -93,7 +90,6 @@ class PlatilloDAO {
             $objeto->precio,
             $objeto->id_categoria,
             $objeto->estado,
-            $objeto->imagen_url,
             $objeto->id_platillo // El ID para identificar el registro a actualizar
         ]);
     }
@@ -123,7 +119,5 @@ class PlatilloDAO {
             return false; // Retorna false si hubo un error
         }
     }
-
 }
-
 ?>
