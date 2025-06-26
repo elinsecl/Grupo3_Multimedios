@@ -2,22 +2,28 @@
 
 class Pedido {
     public $id_pedido;
-    public $cliente_id;
-    public $mesa_id;
+    public $id_usuario;
     public $fecha_pedido;
-    public $hora_pedido;
-    public $total;
     public $estado;
-    public $metodo_pago;
 
-    public function __construct($id_pedido, $cliente_id, $mesa_id, $fecha_pedido, $hora_pedido, $total, $estado, $metodo_pago) {
+    public function __construct($id_pedido = null, $id_usuario = null, $fecha_pedido = null, $estado = null) {
         $this->id_pedido = $id_pedido;
-        $this->cliente_id = $cliente_id;
-        $this->mesa_id = $mesa_id;
+        $this->id_usuario = $id_usuario;
         $this->fecha_pedido = $fecha_pedido;
-        $this->hora_pedido = $hora_pedido;
-        $this->total = $total;
         $this->estado = $estado;
-        $this->metodo_pago = $metodo_pago;
+    }
+
+    public function toArray() {
+        return [
+            'id_pedido' => $this->id_pedido,
+            'id_usuario' => $this->id_usuario,
+            'fecha_pedido' => $this->fecha_pedido,
+            'estado' => $this->estado
+        ];
+    }
+
+    public function toPublicArray() {
+        return $this->toArray(); // No hay datos sensibles
     }
 }
+
