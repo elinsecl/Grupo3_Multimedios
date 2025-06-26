@@ -17,7 +17,14 @@ class HistorialInventarioApiController {
 
     public function manejarRequest(){
         $metodo = $_SERVER['REQUEST_METHOD'];
-        $id = $_GET['id_inventario'] ?? null;
+        $id = $_GET['id_historial_inventario'] ?? null;
+        $id_historial_inventario = $_GET['id_inventario'] ?? null;
+
+         // Manejo de la solicitud OPTIONS para el "preflight" de CORS
+        if ($metodo === 'OPTIONS') {
+            http_response_code(200);
+            exit(); // Termina la ejecución para el preflight
+        }
 
         header('Content-Type: application/json');
 

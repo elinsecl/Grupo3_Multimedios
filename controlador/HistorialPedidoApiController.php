@@ -24,6 +24,12 @@ class HistorialPedidoApiController {
         $id = $_GET['pedido_id'] ?? null;
         $historial_pedido = $_GET['id_historial_pedido'] ?? null;
 
+         // Manejo de la solicitud OPTIONS para el "preflight" de CORS
+        if ($metodo === 'OPTIONS') {
+            http_response_code(200);
+            exit(); // Termina la ejecución para el preflight
+        }
+
         header('Content-Type: application/json');
 
         switch ($metodo) {
