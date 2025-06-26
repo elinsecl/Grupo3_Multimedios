@@ -1,8 +1,6 @@
 <?php
+require_once '../../controlador/PedidoApiController.php';
 
-    require_once '../../controlador/PedidoApiController.php';
+$controlador = new PedidoApiController();
+$controlador->manejarRequest();
 
-    $controlador = new PedidoApiController();
-    $controlador->manejarRequest();
-
-?>
