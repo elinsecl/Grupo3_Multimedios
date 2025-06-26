@@ -14,5 +14,15 @@ class Ingrediente {
         $this->cantidad_stock = $cantidad_stock;
         $this->unidad = $unidad;
     }
+
+    public function toPublicArray() {
+    return [
+        'id_ingrediente' => $this->id_ingrediente,
+        'nombre_ingrediente' => $this->nombre_ingrediente,
+        'descripcion' => $this->descripcion,
+        'cantidad_stock' => $this->cantidad_stock,
+        'unidad' => $this->unidad
+    ];
+}
 }
 ?>

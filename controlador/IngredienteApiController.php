@@ -19,6 +19,12 @@ class IngredienteApiController {
         $metodo = $_SERVER['REQUEST_METHOD'];
         $id = $_GET['id_ingrediente'] ?? null;
 
+        // Manejo de la solicitud OPTIONS para el "preflight" de CORS
+        if ($metodo === 'OPTIONS') {
+            http_response_code(200);
+            exit();
+        }
+
         header('Content-Type: application/json');
 
         switch ($metodo) {
@@ -37,18 +43,27 @@ class IngredienteApiController {
             default:
                 http_response_code(405);
                 echo json_encode(["mensaje" => "Método no permitido"]);
-                break;
+                exit();
         }
     }
 
-    private function handleGetRequest(?int $id){
-        if ($id) {
-            $ingrediente = $this->dao->obtenerPorId($id);
-            echo $ingrediente ? json_encode($ingrediente) :
-                json_encode(["mensaje" => "Ingrediente no encontrado"]);
+    private function handleGetRequest(?int $id_ingrediente){
+        if ($id_ingrediente) {
+            $ingrediente = $this->dao->obtenerPorId($id_ingrediente);
+            if ($ingrediente) {
+                echo json_encode($ingrediente->toPublicArray());
+            } else {
+                http_response_code(404);
+                echo json_encode(["mensaje" => "Ingrediente no encontrado"]);
+            }
         } else {
-            echo json_encode($this->dao->obtenerDatos());
+            $ingredientes = $this->dao->obtenerDatos();
+            $ingredientesArray = array_map(function($ingrediente) {
+                return $ingrediente->toPublicArray();
+            }, $ingredientes);
+            echo json_encode($ingredientesArray);
         }
+        exit();
     }
 
     private function handlePostRequest(){
@@ -56,8 +71,8 @@ class IngredienteApiController {
 
         if (!isset($datos['nombre_ingrediente'], $datos['cantidad_stock'], $datos['unidad'])) {
             http_response_code(400);
-            echo json_encode(["mensaje" => "Faltan datos requeridos"]);
-            return;
+            echo json_encode(["mensaje" => "Datos incompletos. Se requieren nombre_ingrediente, cantidad_stock y unidad."]);
+            exit();
         }
 
         $ingrediente = new Ingrediente(
@@ -75,19 +90,33 @@ class IngredienteApiController {
             http_response_code(500);
             echo json_encode(["mensaje" => "Error al crear el ingrediente"]);
         }
+        exit();
     }
 
-    private function handlePutRequest(?int $id){
-        if (!$id) {
+    private function handlePutRequest(?int $id_ingrediente){
+        if (!$id_ingrediente) {
             http_response_code(400);
-            echo json_encode(["mensaje" => "ID requerido"]);
-            return;
+            echo json_encode(["mensaje" => "ID de ingrediente necesario para actualizar"]);
+            exit();
         }
 
         $datos = json_decode(file_get_contents("php://input"), true);
 
+        if (!isset($datos['nombre_ingrediente'], $datos['cantidad_stock'], $datos['unidad'])) {
+            http_response_code(400);
+            echo json_encode(["mensaje" => "Datos incompletos. Se requieren nombre_ingrediente, cantidad_stock y unidad."]);
+            exit();
+        }
+
+        $ingredienteExistente = $this->dao->obtenerPorId($id_ingrediente);
+        if (!$ingredienteExistente) {
+            http_response_code(404);
+            echo json_encode(["mensaje" => "Ingrediente a actualizar no encontrado"]);
+            exit();
+        }
+
         $ingrediente = new Ingrediente(
-            $id,
+            $id_ingrediente,
             $datos['nombre_ingrediente'],
             $datos['descripcion'] ?? null,
             $datos['cantidad_stock'],
@@ -96,27 +125,32 @@ class IngredienteApiController {
 
         if ($this->dao->actualizar($ingrediente)) {
             http_response_code(200);
-            echo json_encode(["mensaje" => "Ingrediente actualizado"]);
+            echo json_encode(["mensaje" => "Ingrediente actualizado exitosamente"]);
         } else {
             http_response_code(500);
             echo json_encode(["mensaje" => "Error al actualizar el ingrediente"]);
         }
+        exit();
     }
 
-    private function handleDeleteRequest(?int $id){
-        if (!$id) {
+    private function handleDeleteRequest(?int $id_ingrediente){
+        if (!$id_ingrediente) {
             http_response_code(400);
-            echo json_encode(["mensaje" => "ID requerido para eliminar"]);
-            return;
+            echo json_encode(["mensaje" => "ID de ingrediente necesario para eliminar"]);
+            exit();
         }
 
-        if ($this->dao->eliminar($id)) {
+        if ($this->dao->eliminar($id_ingrediente)) {
             http_response_code(200);
-            echo json_encode(["mensaje" => "Ingrediente eliminado"]);
+            echo json_encode(["mensaje" => "Ingrediente eliminado exitosamente"]);
         } else {
             http_response_code(500);
             echo json_encode(["mensaje" => "Error al eliminar el ingrediente"]);
         }
+        exit();
     }
 }
-?>
+
+// Instanciar y manejar la solicitud
+$controlador = new IngredienteApiController();
+$controlador->manejarRequest();

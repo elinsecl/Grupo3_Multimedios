@@ -18,5 +18,20 @@ class Reservacion {
         $this->cantidad_personas = $cantidad_personas;
         $this->estado = $estado;
     }
+
+
+        public function toPublicArray() {
+        return [
+            'id_reservacion' => $this->id_reservacion,
+            'cliente_id' => $this->cliente_id,
+            'mesa_id' => $this->mesa_id,
+            'fecha_reserva' => $this->fecha_reserva,
+            'hora_reserva' => $this->hora_reserva,
+            'cantidad_personas' => $this->cantidad_personas,
+            'estado' => $this->estado
+        ];
+    }
+
+
 }
 ?>
