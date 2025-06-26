@@ -79,9 +79,9 @@ class PlatilloApiController {
     private function handlePostRequest(){
         $datos = json_decode(file_get_contents("php://input"), true);
 
-        if (!isset($datos['nombre_platillo'], $datos['descripcion'], $datos['precio'], $datos['id_categoria'], $datos['estado'])) {
+        if (!isset($datos['nombre_platillo'], $datos['descripcion'], $datos['precio'], $datos['id_categoria'])) {
             http_response_code(400);
-            echo json_encode(["mensaje" => "Datos incompletos para crear platillo. Se requieren nombre_platillo, descripcion, precio, id_categoria y estado."]);
+            echo json_encode(["mensaje" => "Datos incompletos para crear platillo. Se requieren nombre_platillo, descripcion, precio e id_categoria."]);
             exit();
         }
 
@@ -90,8 +90,7 @@ class PlatilloApiController {
             $datos['nombre_platillo'],
             $datos['descripcion'],
             $datos['precio'],
-            $datos['id_categoria'],
-            $datos['estado']
+            $datos['id_categoria']
         );
 
         if ($this->dao->insertar($platillo)) {
@@ -113,9 +112,9 @@ class PlatilloApiController {
 
         $datos = json_decode(file_get_contents("php://input"), true);
 
-        if (!isset($datos['nombre_platillo'], $datos['descripcion'], $datos['precio'], $datos['id_categoria'], $datos['estado'])) {
+        if (!isset($datos['nombre_platillo'], $datos['descripcion'], $datos['precio'], $datos['id_categoria'])) {
              http_response_code(400);
-             echo json_encode(["mensaje" => "Datos incompletos para actualizar platillo. Se requieren nombre_platillo, descripcion, precio, id_categoria y estado."]);
+             echo json_encode(["mensaje" => "Datos incompletos para actualizar platillo. Se requieren nombre_platillo, descripcion, precio e id_categoria."]);
              exit();
         }
 
@@ -131,8 +130,7 @@ class PlatilloApiController {
             $datos['nombre_platillo'],
             $datos['descripcion'],
             $datos['precio'],
-            $datos['id_categoria'],
-            $datos['estado']
+            $datos['id_categoria']
         );
 
         if ($this->dao->actualizar($platillo)) {
