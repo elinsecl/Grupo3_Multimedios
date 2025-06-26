@@ -8,7 +8,6 @@ class Usuario {
     public $nombre;
     public $correo;
     public $password; // Cuidado con exponer esto
-    public $tipo_usuario;
     public $id_rol;
     public $fecha_creacion;
     public $estado;
@@ -17,8 +16,7 @@ class Usuario {
         $id_usuario = null, 
         $nombre = null, 
         $correo = null, 
-        $password = null, 
-        $tipo_usuario = null, 
+        $password = null,  
         $id_rol = null, 
         $fecha_creacion = null, 
         $estado = null
@@ -27,7 +25,6 @@ class Usuario {
         $this->nombre = $nombre;
         $this->correo = $correo;
         $this->password = $password;
-        $this->tipo_usuario = $tipo_usuario;
         $this->id_rol = $id_rol;
         $this->fecha_creacion = $fecha_creacion;
         $this->estado = $estado;
@@ -39,7 +36,6 @@ class Usuario {
             'nombre' => $this->nombre,
             'correo' => $this->correo,
             'password' => $this->password, 
-            'tipo_usuario' => $this->tipo_usuario,
             'id_rol' => $this->id_rol,
             'fecha_creacion' => $this->fecha_creacion,
             'estado' => $this->estado
@@ -52,7 +48,6 @@ class Usuario {
             'nombre' => $this->nombre,
             'correo' => $this->correo,
             //no password para la segurity
-            'tipo_usuario' => $this->tipo_usuario,
             'id_rol' => $this->id_rol,
             'fecha_creacion' => $this->fecha_creacion,
             'estado' => $this->estado

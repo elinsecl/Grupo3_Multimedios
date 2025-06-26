@@ -28,7 +28,6 @@ class UsuarioDao {
                 $row['nombre'],
                 $row['correo'],
                 $row['password'],
-                $row['tipo_usuario'],
                 $row['id_rol'],
                 $row['fecha_creacion'],
                 $row['estado']
@@ -56,7 +55,6 @@ class UsuarioDao {
                 $row['nombre'],
                 $row['correo'],
                 $row['password'],
-                $row['tipo_usuario'],
                 $row['id_rol'],
                 $row['fecha_creacion'],
                 $row['estado']
@@ -74,13 +72,12 @@ class UsuarioDao {
      * @return bool True si la inserción fue exitosa, false en caso contrario.
      */
     public function insertar(Usuario $objeto): bool {
-        $sql = "INSERT INTO Grupo3_Usuario (nombre, correo, password, tipo_usuario, id_rol, fecha_creacion, estado) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO Grupo3_Usuario (nombre, correo, password, id_rol, fecha_creacion, estado) VALUES (?, ?, ?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             $objeto->nombre,
             $objeto->correo,
             $objeto->password,
-            $objeto->tipo_usuario,
             $objeto->id_rol,
             $objeto->fecha_creacion,
             $objeto->estado
@@ -97,13 +94,12 @@ class UsuarioDao {
      * @return bool True si la actualización fue exitosa, false en caso contrario.
      */
     public function actualizar(Usuario $objeto): bool {
-        $sql = "UPDATE Grupo3_Usuario SET nombre = ?, correo = ?, password = ?, tipo_usuario = ?, id_rol = ?, fecha_creacion = ?, estado = ? WHERE id_usuario = ?";
+        $sql = "UPDATE Grupo3_Usuario SET nombre = ?, correo = ?, password = ?, id_rol = ?, fecha_creacion = ?, estado = ? WHERE id_usuario = ?";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             $objeto->nombre,
             $objeto->correo,
             $objeto->password,
-            $objeto->tipo_usuario,
             $objeto->id_rol,
             $objeto->fecha_creacion,
             $objeto->estado,

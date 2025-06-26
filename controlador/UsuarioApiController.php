@@ -75,15 +75,15 @@ class UsuarioApiController {
             // Aseguramos que siempre sea un array JSON, incluso si está vacío
             echo json_encode($usuariosArray);
         }
-        exit(); // ¡IMPORTANTE! Termina el script aquí para evitar cualquier salida adicional.
+        exit();
     }
 
     private function handlePostRequest(){
         $datos = json_decode(file_get_contents("php://input"), true);
 
-        if (!isset($datos['nombre'], $datos['correo'], $datos['password'], $datos['tipo_usuario'], $datos['estado'])) {
+        if (!isset($datos['nombre'], $datos['correo'], $datos['password'], $datos['id_rol'], $datos['estado'])) {
             http_response_code(400);
-            echo json_encode(["mensaje" => "Datos incompletos para crear usuario. Se requieren nombre, correo, password, tipo_usuario, estado."]);
+            echo json_encode(["mensaje" => "Datos incompletos para crear usuario. Se requieren nombre, correo, password, rol, estado."]);
             exit();
         }
 
@@ -95,7 +95,6 @@ class UsuarioApiController {
             $datos['nombre'],
             $datos['correo'],
             $datos['password'],
-            $datos['tipo_usuario'],
             $id_rol,
             $fecha_creacion,
             $datos['estado']
@@ -120,9 +119,9 @@ class UsuarioApiController {
 
         $datos = json_decode(file_get_contents("php://input"), true);
 
-        if (!isset($datos['nombre'], $datos['correo'], $datos['tipo_usuario'], $datos['estado'])) {
+        if (!isset($datos['nombre'], $datos['correo'], $datos['id_rol'], $datos['estado'])) {
              http_response_code(400);
-             echo json_encode(["mensaje" => "Datos incompletos para actualizar usuario. Se requieren nombre, correo, tipo_usuario, estado."]);
+             echo json_encode(["mensaje" => "Datos incompletos para actualizar usuario. Se requieren nombre, correo, rol, estado."]);
              exit();
         }
 
@@ -142,7 +141,6 @@ class UsuarioApiController {
             $datos['nombre'],
             $datos['correo'],
             $password,
-            $datos['tipo_usuario'],
             $id_rol,
             $fecha_creacion,
             $datos['estado']
