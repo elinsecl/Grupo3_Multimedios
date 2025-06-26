@@ -17,7 +17,7 @@ class PlatilloDAO {
      * @return array Un array de objetos Platillo.
      */
     public function obtenerDatos(): array {
-        $stmt = $this->pdo->query("SELECT * FROM Grupo3_Platillo");
+        $stmt = $this->pdo->query("SELECT id_platillo, nombre_platillo, descripcion, precio, id_categoria FROM Grupo3_Platillo");
 
         $result = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -26,8 +26,7 @@ class PlatilloDAO {
                 $row['nombre_platillo'],
                 $row['descripcion'],
                 $row['precio'],
-                $row['id_categoria'],
-                $row['estado']
+                $row['id_categoria']
             );
         }
         return $result;
@@ -40,7 +39,7 @@ class PlatilloDAO {
      * @return Platillo|null Un objeto Platillo si se encuentra, o null si no.
      */
     public function obtenerPorId(int $id_platillo): ?Platillo {
-        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Platillo WHERE id_platillo = ?;");
+        $stmt = $this->pdo->prepare("SELECT id_platillo, nombre_platillo, descripcion, precio, id_categoria FROM Grupo3_Platillo WHERE id_platillo = ?;");
         $stmt->execute([$id_platillo]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -50,8 +49,7 @@ class PlatilloDAO {
                 $row['nombre_platillo'],
                 $row['descripcion'],
                 $row['precio'],
-                $row['id_categoria'],
-                $row['estado']
+                $row['id_categoria']
             );
         }
         return null; // Retorna null si no se encuentra el platillo
@@ -64,14 +62,13 @@ class PlatilloDAO {
      * @return bool True si la inserción fue exitosa, false en caso contrario.
      */
     public function insertar(Platillo $objeto): bool {
-        $sql = "INSERT INTO Grupo3_Platillo (nombre_platillo, descripcion, precio, id_categoria, estado) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO Grupo3_Platillo (nombre_platillo, descripcion, precio, id_categoria) VALUES (?, ?, ?, ?)";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             $objeto->nombre_platillo,
             $objeto->descripcion,
             $objeto->precio,
-            $objeto->id_categoria,
-            $objeto->estado
+            $objeto->id_categoria
         ]);
     }
 
@@ -82,14 +79,13 @@ class PlatilloDAO {
      * @return bool True si la actualización fue exitosa, false en caso contrario.
      */
     public function actualizar(Platillo $objeto): bool {
-        $sql = "UPDATE Grupo3_Platillo SET nombre_platillo = ?, descripcion = ?, precio = ?, id_categoria = ?, estado = ? WHERE id_platillo = ?";
+        $sql = "UPDATE Grupo3_Platillo SET nombre_platillo = ?, descripcion = ?, precio = ?, id_categoria = ? WHERE id_platillo = ?";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([
             $objeto->nombre_platillo,
             $objeto->descripcion,
             $objeto->precio,
             $objeto->id_categoria,
-            $objeto->estado,
             $objeto->id_platillo // El ID para identificar el registro a actualizar
         ]);
     }
