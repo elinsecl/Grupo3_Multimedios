@@ -135,18 +135,18 @@ class UsuarioDao {
      * excluyendo opcionalmente a un usuario específico (para actualizaciones).
      *
      * @param string $correo El correo electrónico a verificar.
-     * @param int|null $id_usuario_excluir El ID del usuario a excluir de la comprobación (si se está editando a sí mismo).
+     * @param int|null $id_usuario El ID del usuario a excluir de la comprobación (si se está editando a sí mismo).
      * @return bool True si el correo ya existe (para otro usuario si se excluye), false en caso contrario.
      */
-    public function correoExiste(string $correo, ?int $id_usuario_excluir = null): bool {
+    public function correoExiste(string $correo, ?int $id_usuario = null): bool {
         try {
             $sql = "SELECT COUNT(*) FROM Grupo3_Usuario WHERE correo = ?";
             $params = [$correo];
 
             // Si se proporciona un ID para excluir, se agrega a la consulta y a los parámetros
-            if ($id_usuario_excluir !== null) {
+            if ($id_usuario !== null) {
                 $sql .= " AND id_usuario != ?";
-                $params[] = $id_usuario_excluir;
+                $params[] = $id_usuario;
             }
 
             $stmt = $this->pdo->prepare($sql);

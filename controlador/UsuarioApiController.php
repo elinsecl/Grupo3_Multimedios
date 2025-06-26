@@ -1,9 +1,11 @@
 <?php
+// Establece las cabeceras CORS para permitir solicitudes desde cualquier origen
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
 
+// Incluye los archivos necesarios del modelo y acceso a datos
 require_once __DIR__.'/../accesoDatos/UsuarioDAO.php';
 require_once __DIR__.'/../modelo/Usuario.php';
 
@@ -32,7 +34,7 @@ class UsuarioApiController {
         // Manejo de la solicitud OPTIONS para el "preflight" de CORS.
         // El navegador envía una solicitud OPTIONS antes de una solicitud "real" (POST, PUT, DELETE)
         // para verificar si la solicitud es segura de enviar.
-        if ($metodo === 'OPTIONS') {
+        if ($metodo == 'OPTIONS') {
             http_response_code(200); // Responde con 200 OK para el preflight
             exit(); // Termina la ejecución aquí
         }
@@ -111,9 +113,8 @@ class UsuarioApiController {
             exit();
         }
 
-       
         if ($this->dao->correoExiste($datos['correo'])) {
-            http_response_code(409); 
+            http_response_code(409); // Conflict
             echo json_encode(["message" => "El correo electrónico '{$datos['correo']}' ya está en uso."]);
             exit();
         }
@@ -123,15 +124,14 @@ class UsuarioApiController {
         // Asigna la fecha de creación, usando la actual si no se proporciona
         $fecha_creacion = $datos['fecha_creacion'] ?? date('Y-m-d H:i:s');
 
-        
-        $password = password($datos['password']);
+        $password = $datos['password']; 
 
         // Crea un nuevo objeto Usuario con los datos proporcionados
         $usuario = new Usuario(
-            null, // ID es null para un nuevo usuario 
+            null, // ID es null para un nuevo usuario
             $datos['nombre'],
             $datos['correo'],
-            $password, 
+            $password, // Usa la contraseña SIN hashear
             $id_rol,
             $fecha_creacion,
             $datos['estado']
@@ -180,7 +180,6 @@ class UsuarioApiController {
             exit();
         }
 
-    
         if ($datos['correo'] !== $usuarioExistente->correo && $this->dao->correoExiste($datos['correo'], $id_usuario)) {
             http_response_code(409); // Conflict
             echo json_encode(["message" => "El correo electrónico '{$datos['correo']}' ya está en uso por otro usuario."]);
@@ -190,10 +189,10 @@ class UsuarioApiController {
         // Asigna el ID del rol, manejando si está vacío
         $id_rol = isset($datos['id_rol']) && $datos['id_rol'] !== '' ? (int)$datos['id_rol'] : null;
         
-        // Manejo de la contraseña
+       
         $password_to_save = $usuarioExistente->password; 
         if (isset($datos['password']) && $datos['password'] !== '') {
-            $password_to_save = password_hash($datos['password']);
+            $password_to_save = $datos['password']; 
         }
 
         // Asigna la fecha de creación, usando la existente si no se proporciona una nueva
@@ -204,7 +203,7 @@ class UsuarioApiController {
             $id_usuario,
             $datos['nombre'],
             $datos['correo'],
-            $password_to_save,
+            $password_to_save, 
             $id_rol,
             $fecha_creacion,
             $datos['estado']
