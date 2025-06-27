@@ -24,6 +24,12 @@ class InventarioApiController {
         $id = $_GET['id'] ?? null;
         header('Content-Type: application/json');
 
+         // Manejo de la solicitud OPTIONS para el "preflight" de CORS
+        if ($metodo === 'OPTIONS') {
+            http_response_code(200);
+            exit(); // Termina la ejecución para el preflight
+        }
+
         switch ($metodo) {
             case 'GET':
                 $this->handleGetRequest($id);

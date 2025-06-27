@@ -23,6 +23,13 @@ class PedidoApiController {
         $metodo = $_SERVER['REQUEST_METHOD'];
         $id = $_GET['id_pedido'] ?? null;
 
+
+         // Manejo de la solicitud OPTIONS para el "preflight" de CORS
+        if ($metodo === 'OPTIONS') {
+            http_response_code(200);
+            exit(); // Termina la ejecución para el preflight
+        }
+        
         header('Content-Type: application/json');
 
         switch ($metodo) {
