@@ -84,6 +84,45 @@ class PedidoApiController {
         }
     }
 
+    private function handlePostRequest2() {
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (!isset($data['id_usuario'], $data['estado'])) {
+            http_response_code(400);
+            echo json_encode(["mensaje" => "Faltan datos: id_usuario y estado"]);
+            return;
+        }
+
+        $fecha = $data['fecha_pedido'] ?? date('Y-m-d H:i:s');
+
+        $pedido = new Pedido(null, $data['id_usuario'], $fecha, $data['estado']);
+
+        $registro_id = $this->dao->insertar2($pedido); // Modifica tu método insertar() para retornar el ID
+
+        if ($registro_id !== false) {
+           
+            // Crear objeto HistorialPedido
+                $historial = new HistorialPedido(
+                null,
+                $registro_id,
+                $datos['fecha_entrega'] ?? date('Y-m-d H:i:s'),
+                $datos['estado_entrega'] ?? 'pendiente'
+                );
+
+            // Insertar historial (asegúrate de que dao2 esté correctamente inicializado)
+            $this->dao2->insertar($historial);
+
+            http_response_code(201);
+            echo json_encode([
+                "mensaje" => "pedido e historial registrados exitosamente",
+                "pedido_id" => $registro_id
+            ]);
+        } else {
+            http_response_code(500);
+            echo json_encode(["mensaje" => "Error al registrar el pedido"]);
+        }
+    }
+    
     private function handlePutRequest($id) {
         if (!$id) {
             http_response_code(400);

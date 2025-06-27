@@ -47,6 +47,22 @@ class PedidoDao {
         ]);
     }
 
+     public function insertar2(Pedido $pedido): int|false {
+        $sql = "INSERT INTO Grupo3_Pedido (id_usuario, fecha_pedido, estado) VALUES (?, ?, ?)";
+        $stmt = $this->pdo->prepare($sql);
+        $resultado = $stmt->execute([
+            $pedido->id_usuario,
+            (!empty($pedido->fecha_pedido) && trim($pedido->fecha_pedido) !== '') ? $pedido->fecha_pedido  : date('Y-m-d H:i:s'),
+            $pedido->estado
+        ]);
+
+        if ($resultado) {
+            return (int)$this->pdo->lastInsertId();
+        }
+
+        return true;
+    }
+    
     public function actualizar(Pedido $pedido): bool {
         $sql = "UPDATE Grupo3_Pedido SET id_usuario = ?, fecha_pedido = ?, estado = ? WHERE id_pedido = ?";
         $stmt = $this->pdo->prepare($sql);
