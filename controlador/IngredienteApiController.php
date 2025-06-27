@@ -100,9 +100,9 @@ class IngredienteApiController {
                 echo json_encode(["mensaje" => "Error al crear el ingrediente"]);
             }
         } catch (PDOException $e) {
-            // Manejo de errores comunes de BD
+            // Manejo de errores BD
             if ($e->getCode() == 23000) {
-                // Violación de restricción única o clave foránea
+                // Violación de restricci
                 if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
                     http_response_code(409);
                     echo json_encode([
@@ -208,7 +208,7 @@ class IngredienteApiController {
             }
         } catch (PDOException $e) {
             if ($e->getCode() == 23000) {
-                // Violación de clave foránea
+                // Violación de clave 
                 http_response_code(409);
                 echo json_encode([
                     "mensaje" => "No se puede eliminar el ingrediente porque está relacionado con otros registros.",
