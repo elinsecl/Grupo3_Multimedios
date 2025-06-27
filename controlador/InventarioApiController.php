@@ -12,6 +12,7 @@ require_once __DIR__.'/../modelo/HistorialInventario.php';
 class InventarioApiController {
     private $dao;
     private $dao2;
+    
 
     public function __construct() {
         $this->dao = new InventarioDAO();
@@ -59,25 +60,28 @@ class InventarioApiController {
             echo json_encode(["mensaje" => "Datos incompletos"]);
             return;
         }
-        
+
+        date_default_timezone_set('America/Costa_Rica');
+
         $registro = new Inventario(
             null,
             $datos['ingrediente_id'],
             $datos['cantidad_stock'],
-            $datos['fecha_entrada'] ?? date('Y-m-d H:i:s'),
+            (!empty($datos['fecha_entrada']) && trim($datos['fecha_entrada']) !== '') ? $datos['fecha_entrada'] : date('Y-m-d H:i:s'),
             $datos['proveedor_id']
         );
 
         $registro_id = $this->dao->insertar2($registro); // Modifica tu método insertar() para retornar el ID
 
          if ($registro_id !== false) {
+           
             // Crear objeto HistorialInventario
              $historial = new HistorialInventario(
                 null,
                 $registro_id,
                 $datos['ingrediente_id'],
                 $datos['cantidad_stock'],
-                $datos['fecha_entrada'] ?? date('Y-m-d H:i:s'),
+                 (!empty($datos['fecha_entrada']) && trim($datos['fecha_entrada']) !== '') ? $datos['fecha_entrada'] : date('Y-m-d H:i:s'),
                 $datos['tipo_cambio'] ?? 'compra'
              );
 
@@ -87,7 +91,7 @@ class InventarioApiController {
             http_response_code(201);
             echo json_encode([
                 "mensaje" => "Inventario e historial registrados exitosamente",
-                "pedido_id" => $registro_id
+                "inventario_id" => $registro_id
             ]);
         } else {
             http_response_code(500);
