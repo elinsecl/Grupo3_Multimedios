@@ -1,32 +1,29 @@
 <?php
-
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-header('Content-Type: application/json');
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
 
-require_once __DIR__.'/../accesoDatos/PedidoDao.php';
+require_once __DIR__.'/../accesoDatos/PedidoDAO.php';
+require_once __DIR__.'/../modelo/Pedido.php';
 require_once __DIR__.'/../accesoDatos/HistorialPedidoDAO.php';
 require_once __DIR__.'/../modelo/HistorialPedido.php'; 
-require_once __DIR__.'/../modelo/Pedido.php';
 
 class PedidoApiController {
+
     private $dao;
     private $dao2;
 
-    public function __construct() {
-        $this->dao = new PedidoDao();
+    public function __construct(){
+        $this->dao = new PedidoDAO();
         $this->dao2 = new HistorialPedidoDAO();
     }
 
-    public function manejarRequest() {
+    public function manejarRequest(){
         $metodo = $_SERVER['REQUEST_METHOD'];
         $id = $_GET['id_pedido'] ?? null;
 
-        if ($metodo == 'OPTIONS') {
-            http_response_code(200);
-            exit();
-        }
+        header('Content-Type: application/json');
 
         switch ($metodo) {
             case 'GET':
@@ -44,134 +41,119 @@ class PedidoApiController {
             default:
                 http_response_code(405);
                 echo json_encode(["mensaje" => "Método no permitido"]);
+                break;
         }
     }
 
-    private function handleGetRequest($id) {
+    private function handleGetRequest(?int $id){
         if ($id) {
             $pedido = $this->dao->obtenerPorId($id);
             if ($pedido) {
-                echo json_encode($pedido->toPublicArray());
+                echo json_encode($pedido);
             } else {
                 http_response_code(404);
                 echo json_encode(["mensaje" => "Pedido no encontrado"]);
             }
         } else {
             $pedidos = $this->dao->obtenerDatos();
-            echo json_encode(array_map(fn($p) => $p->toPublicArray(), $pedidos));
+            echo json_encode($pedidos);
         }
     }
 
-    private function handlePostRequest() {
-        $data = json_decode(file_get_contents("php://input"), true);
+    private function handlePostRequest(){
+        $datos = json_decode(file_get_contents("php://input"), true);
 
-        if (!isset($data['id_usuario'], $data['estado'])) {
+        if (!isset($datos['cliente_id'], $datos['mesa_id'], $datos['hora_pedido'], $datos['total'], $datos['metodo_pago'])) {
             http_response_code(400);
-            echo json_encode(["mensaje" => "Faltan datos: id_usuario y estado"]);
+            echo json_encode(["mensaje" => "Datos incompletos para crear pedido."]);
             return;
         }
 
-        $fecha = $data['fecha_pedido'] ?? date('Y-m-d H:i:s');
+        $pedido = new Pedido(
+            null,
+            $datos['cliente_id'],
+            $datos['mesa_id'],
+            $datos['fecha_pedido'] ?? date('Y-m-d H:i:s'),
+            $datos['hora_pedido'],
+            $datos['total'],
+            $datos['estado'] ?? 'pendiente',
+            $datos['metodo_pago']
+        );
 
-        $pedido = new Pedido(null, $data['id_usuario'], $fecha, $data['estado']);
+       $pedidoId = $this->dao->insertar2($pedido); // Modifica tu método insertar() para retornar el ID
 
-        if ($this->dao->insertar($pedido)) {
-            http_response_code(201);
-            echo json_encode(["mensaje" => "Pedido creado exitosamente"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["mensaje" => "Error al crear pedido"]);
-        }
-    }
-
-    private function handlePostRequest2() {
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if (!isset($data['id_usuario'], $data['estado'])) {
-            http_response_code(400);
-            echo json_encode(["mensaje" => "Faltan datos: id_usuario y estado"]);
-            return;
-        }
-
-        $fecha = $data['fecha_pedido'] ?? date('Y-m-d H:i:s');
-
-        $pedido = new Pedido(null, $data['id_usuario'], $fecha, $data['estado']);
-
-        $registro_id = $this->dao->insertar2($pedido); // Modifica tu método insertar() para retornar el ID
-
-        if ($registro_id !== false) {
-           
+         if ($pedidoId !== false) {
             // Crear objeto HistorialPedido
-                $historial = new HistorialPedido(
+            $historial = new HistorialPedido(
                 null,
-                $registro_id,
+                $pedidoId,
                 $datos['fecha_entrega'] ?? date('Y-m-d H:i:s'),
                 $datos['estado_entrega'] ?? 'pendiente'
-                );
+            );
 
             // Insertar historial (asegúrate de que dao2 esté correctamente inicializado)
             $this->dao2->insertar($historial);
 
             http_response_code(201);
             echo json_encode([
-                "mensaje" => "pedido e historial registrados exitosamente",
-                "pedido_id" => $registro_id
+                "mensaje" => "Pedido e historial creados exitosamente",
+                "pedido_id" => $pedidoId
             ]);
         } else {
             http_response_code(500);
-            echo json_encode(["mensaje" => "Error al registrar el pedido"]);
+            echo json_encode(["mensaje" => "Error al crear el pedido"]);
         }
     }
-    
-    private function handlePutRequest($id) {
+
+
+    private function handlePutRequest(?int $id){
         if (!$id) {
             http_response_code(400);
-            echo json_encode(["mensaje" => "Falta el id_pedido en la URL"]);
+            echo json_encode(["mensaje" => "ID de pedido necesario para actualizar"]);
             return;
         }
 
-        $data = json_decode(file_get_contents("php://input"), true);
-        $pedidoExistente = $this->dao->obtenerPorId($id);
+        $datos = json_decode(file_get_contents("php://input"), true);
 
-        if (!$pedidoExistente) {
-            http_response_code(404);
-            echo json_encode(["mensaje" => "Pedido no encontrado"]);
+        if (!isset($datos['cliente_id'], $datos['mesa_id'], $datos['hora_pedido'], $datos['total'], $datos['metodo_pago'])) {
+            http_response_code(400);
+            echo json_encode(["mensaje" => "Datos incompletos para actualizar pedido"]);
             return;
         }
 
         $pedido = new Pedido(
             $id,
-            $data['id_usuario'] ?? $pedidoExistente->id_usuario,
-            $data['fecha_pedido'] ?? $pedidoExistente->fecha_pedido,
-            $data['estado'] ?? $pedidoExistente->estado
+            $datos['cliente_id'],
+            $datos['mesa_id'],
+            $datos['fecha_pedido'] ?? date('Y-m-d H:i:s'),
+            $datos['hora_pedido'],
+            $datos['total'],
+            $datos['estado'] ?? 'pendiente',
+            $datos['metodo_pago']
         );
 
         if ($this->dao->actualizar($pedido)) {
             http_response_code(200);
-            echo json_encode(["mensaje" => "Pedido actualizado"]);
+            echo json_encode(["mensaje" => "Pedido actualizado exitosamente"]);
         } else {
             http_response_code(500);
-            echo json_encode(["mensaje" => "Error al actualizar pedido"]);
+            echo json_encode(["mensaje" => "Error al actualizar el pedido"]);
         }
     }
 
-    private function handleDeleteRequest($id) {
+    private function handleDeleteRequest(?int $id){
         if (!$id) {
             http_response_code(400);
-            echo json_encode(["mensaje" => "Falta el id_pedido en la URL"]);
+            echo json_encode(["mensaje" => "ID de pedido necesario para eliminar"]);
             return;
         }
 
         if ($this->dao->eliminar($id)) {
             http_response_code(200);
-            echo json_encode(["mensaje" => "Pedido eliminado"]);
+            echo json_encode(["mensaje" => "Pedido eliminado exitosamente"]);
         } else {
             http_response_code(500);
-            echo json_encode(["mensaje" => "No se pudo eliminar el pedido"]);
+            echo json_encode(["mensaje" => "Error al eliminar el pedido"]);
         }
     }
 }
-
-$controlador = new PedidoApiController();
-$controlador->manejarRequest();
-
