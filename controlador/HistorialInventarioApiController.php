@@ -1,5 +1,5 @@
 <?php
-header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Origin: * ");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Access-Control-Allow-Credentials: true");
@@ -18,7 +18,7 @@ class HistorialInventarioApiController {
     public function manejarRequest(){
         $metodo = $_SERVER['REQUEST_METHOD'];
         $id = $_GET['id_inventario'] ?? null;
-        $id_historial_inventario = $_GET['id_historial_inventario'] ?? null;
+        $id_historial = $_GET['id_historial_inventario'] ?? null;
 
          // Manejo de la solicitud OPTIONS para el "preflight" de CORS
         if ($metodo === 'OPTIONS') {
@@ -30,13 +30,13 @@ class HistorialInventarioApiController {
 
         switch ($metodo) {
             case 'GET':
-                $this->handleGetRequest($id);
+                $this->handleGetRequest($id_historial);
                 break;
             case 'POST':
                 $this->handlePostRequest();
                 break;
             case 'DELETE':
-                $this->handleDeleteRequest($id_historial_inventario);
+                $this->handleDeleteRequest($id_historial);
                 break;
             default:
                 http_response_code(405);
@@ -45,9 +45,9 @@ class HistorialInventarioApiController {
         }
     }
 
-    private function handleGetRequest(?int $id){
-        if ($id) {
-            $historial_inventario = $this->dao->obtenerPorId($id);
+    private function handleGetRequest(?int $id_historial){
+        if ($id_historial) {
+            $historial_inventario = $this->dao->obtenerPorId($id_historial);
             if ($historial_inventario) {
                 echo json_encode($historial_inventario);
             } else {
@@ -87,14 +87,14 @@ class HistorialInventarioApiController {
         }
     }
 
-    private function handleDeleteRequest(?int $id_historial_inventario){
-        if (!$id_historial_inventario) {
+    private function handleDeleteRequest(?int $id_historial){
+        if (!$id_historial) {
             http_response_code(400);
             echo json_encode(["mensaje" => "ID del historial del inventario necesario para eliminar"]);
             return;
         }
 
-        if ($this->dao->eliminar($id_historial_inventario)) {
+        if ($this->dao->eliminar($id_historial)) {
             http_response_code(200);
             echo json_encode(["mensaje" => "historial del inventario eliminada exitosamente"]);
         } else {

@@ -11,11 +11,9 @@ class HistorialPedidoApiController {
 
     
     private $dao;
-    private $dao2;
 
     public function __construct(){
         $this->dao = new HistorialPedidoDAO();
-        $this->dao2 = new HistorialPedidoDAO();
     }
 
 
@@ -102,14 +100,14 @@ class HistorialPedidoApiController {
         }
     }
 
-    private function handleDeleteRequest(?int $id){
-        if (!$id) {
+    private function handleDeleteRequest(?int $historial_pedido){
+        if (!$historial_pedido) {
             http_response_code(400);
             echo json_encode(["mensaje" => "ID del historial del pedido necesario para eliminar"]);
             return;
         }
 
-        if ($this->dao->eliminar($id)) {
+        if ($this->dao->eliminar($historial_pedido)) {
             http_response_code(200);
             echo json_encode(["mensaje" => "historial del pedido eliminada exitosamente"]);
         } else {

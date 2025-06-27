@@ -29,7 +29,7 @@ class HistorialInventarioDAO {
     }
 
     public function obtenerPorId(int $id_historial_inventario): ?HistorialInventario {
-        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Inventario WHERE id_inventario = ?");
+        $stmt = $this->pdo->prepare("SELECT * FROM Grupo3_Historial_Inventario WHERE id_historial_inventario = ?");
         $stmt->execute([$id_historial_inventario]);
 
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -45,6 +45,24 @@ class HistorialInventarioDAO {
         }
         return null;
     }
+
+    public function obtenerPorIdIngrediente(int $ingrediente_id) :  array {
+
+         $stmt = $this->pdo->query("SELECT * FROM Grupo3_Historial_Inventario Where ingrediente_id = ?");
+
+        $result = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $result[] = new HistorialInventario(
+                $row['id_historial_inventario'],
+                $row['id_inventario'],
+                $row['ingrediente_id'],
+                $row['cambio_stock'],
+                $row['fecha'],
+                $row['tipo_cambio']
+            );
+        }
+        return $result;
+    }    
 
     public function insertar(HistorialInventario $objeto): bool {
         $sql = "INSERT INTO Grupo3_Historial_Inventario (id_inventario, ingrediente_id, cambio_stock, fecha,tipo_cambio) VALUES ( ?, ?, ?, ?, ?)";

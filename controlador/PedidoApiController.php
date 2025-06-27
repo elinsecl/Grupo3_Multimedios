@@ -6,13 +6,17 @@ header("Access-Control-Allow-Headers: Content-Type");
 header('Content-Type: application/json');
 
 require_once __DIR__.'/../accesoDatos/PedidoDao.php';
+require_once __DIR__.'/../accesoDatos/HistorialPedidoDAO.php';
+require_once __DIR__.'/../modelo/HistorialPedido.php'; 
 require_once __DIR__.'/../modelo/Pedido.php';
 
 class PedidoApiController {
     private $dao;
+    private $dao2;
 
     public function __construct() {
         $this->dao = new PedidoDao();
+        $this->dao2 = new HistorialPedidoDAO();
     }
 
     public function manejarRequest() {

@@ -70,7 +70,7 @@ class HistorialPedidoDAO {
     }
 
     public function eliminar(int $id_historial_pedido): bool {
-        $sql = "DELETE FROM Grupo3_Historial_Pedido WHERE pedido_id = ?";
+        $sql = "DELETE FROM Grupo3_Historial_Pedido WHERE id_historial_pedido = ?";
         $stmt = $this->pdo->prepare($sql);
         return $stmt->execute([$id_historial_pedido]);
     }
