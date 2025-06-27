@@ -16,6 +16,13 @@ class MesaApiController {
     }
 
     public function manejarRequest(){
+
+            // ✅ Manejar preflight request (CORS)
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit();
+    }
+    
         $metodo = $_SERVER['REQUEST_METHOD'];
         $id = $_GET['id_mesa'] ?? null;
 

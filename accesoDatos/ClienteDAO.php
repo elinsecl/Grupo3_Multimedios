@@ -3,7 +3,7 @@
 require_once __DIR__.'/../misc/Conexion.php';
 require_once __DIR__.'/../modelo/Cliente.php';
 
-class ClienteDao {
+class ClienteDAO {
 
     private $pdo;
 
