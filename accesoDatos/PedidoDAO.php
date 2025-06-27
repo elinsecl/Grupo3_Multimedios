@@ -60,9 +60,11 @@ class PedidoDAO {
             $objeto->estado,
             $objeto->metodo_pago
         ]);
-        
     }
 
+    /**
+     * Inserta un pedido y devuelve el ID insertado o false si falla.
+     */
     public function insertar2(Pedido $objeto): int|false {
         $sql = "INSERT INTO Grupo3_Pedido (cliente_id, mesa_id, fecha_pedido, hora_pedido, total, estado, metodo_pago) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -78,10 +80,10 @@ class PedidoDAO {
         ]);
 
         if ($resultado) {
-            return $this->pdo->lastInsertId();
+            return (int)$this->pdo->lastInsertId();
         }
 
-        return true;
+        return false;
     }
 
     public function actualizar(Pedido $objeto): bool {
