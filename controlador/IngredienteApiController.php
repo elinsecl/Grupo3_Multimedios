@@ -48,20 +48,28 @@ class IngredienteApiController {
     }
 
     private function handleGetRequest(?int $id_ingrediente){
-        if ($id_ingrediente) {
-            $ingrediente = $this->dao->obtenerPorId($id_ingrediente);
-            if ($ingrediente) {
-                echo json_encode($ingrediente->toPublicArray());
+        try {
+            if ($id_ingrediente) {
+                $ingrediente = $this->dao->obtenerPorId($id_ingrediente);
+                if ($ingrediente) {
+                    echo json_encode($ingrediente->toPublicArray());
+                } else {
+                    http_response_code(404);
+                    echo json_encode(["mensaje" => "Ingrediente no encontrado"]);
+                }
             } else {
-                http_response_code(404);
-                echo json_encode(["mensaje" => "Ingrediente no encontrado"]);
+                $ingredientes = $this->dao->obtenerDatos();
+                $ingredientesArray = array_map(function($ingrediente) {
+                    return $ingrediente->toPublicArray();
+                }, $ingredientes);
+                echo json_encode($ingredientesArray);
             }
-        } else {
-            $ingredientes = $this->dao->obtenerDatos();
-            $ingredientesArray = array_map(function($ingrediente) {
-                return $ingrediente->toPublicArray();
-            }, $ingredientes);
-            echo json_encode($ingredientesArray);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                "mensaje" => "Error al obtener los ingredientes.",
+                "error" => $e->getMessage()
+            ]);
         }
         exit();
     }
@@ -83,12 +91,38 @@ class IngredienteApiController {
             $datos['unidad']
         );
 
-        if ($this->dao->insertar($ingrediente)) {
-            http_response_code(201);
-            echo json_encode(["mensaje" => "Ingrediente creado exitosamente"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["mensaje" => "Error al crear el ingrediente"]);
+        try {
+            if ($this->dao->insertar($ingrediente)) {
+                http_response_code(201);
+                echo json_encode(["mensaje" => "Ingrediente creado exitosamente"]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["mensaje" => "Error al crear el ingrediente"]);
+            }
+        } catch (PDOException $e) {
+            // Manejo de errores comunes de BD
+            if ($e->getCode() == 23000) {
+                // Violación de restricción única o clave foránea
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    http_response_code(409);
+                    echo json_encode([
+                        "mensaje" => "Ya existe un ingrediente con ese nombre.",
+                        "error" => $e->getMessage()
+                    ]);
+                } else {
+                    http_response_code(409);
+                    echo json_encode([
+                        "mensaje" => "Error de integridad de datos al crear el ingrediente.",
+                        "error" => $e->getMessage()
+                    ]);
+                }
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    "mensaje" => "Error inesperado al crear el ingrediente.",
+                    "error" => $e->getMessage()
+                ]);
+            }
         }
         exit();
     }
@@ -123,12 +157,36 @@ class IngredienteApiController {
             $datos['unidad']
         );
 
-        if ($this->dao->actualizar($ingrediente)) {
-            http_response_code(200);
-            echo json_encode(["mensaje" => "Ingrediente actualizado exitosamente"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["mensaje" => "Error al actualizar el ingrediente"]);
+        try {
+            if ($this->dao->actualizar($ingrediente)) {
+                http_response_code(200);
+                echo json_encode(["mensaje" => "Ingrediente actualizado exitosamente"]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["mensaje" => "Error al actualizar el ingrediente"]);
+            }
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) {
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    http_response_code(409);
+                    echo json_encode([
+                        "mensaje" => "Ya existe un ingrediente con ese nombre.",
+                        "error" => $e->getMessage()
+                    ]);
+                } else {
+                    http_response_code(409);
+                    echo json_encode([
+                        "mensaje" => "Error de integridad de datos al actualizar el ingrediente.",
+                        "error" => $e->getMessage()
+                    ]);
+                }
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    "mensaje" => "Error inesperado al actualizar el ingrediente.",
+                    "error" => $e->getMessage()
+                ]);
+            }
         }
         exit();
     }
@@ -140,12 +198,29 @@ class IngredienteApiController {
             exit();
         }
 
-        if ($this->dao->eliminar($id_ingrediente)) {
-            http_response_code(200);
-            echo json_encode(["mensaje" => "Ingrediente eliminado exitosamente"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["mensaje" => "Error al eliminar el ingrediente"]);
+        try {
+            if ($this->dao->eliminar($id_ingrediente)) {
+                http_response_code(200);
+                echo json_encode(["mensaje" => "Ingrediente eliminado exitosamente"]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["mensaje" => "Error al eliminar el ingrediente"]);
+            }
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) {
+                // Violación de clave foránea
+                http_response_code(409);
+                echo json_encode([
+                    "mensaje" => "No se puede eliminar el ingrediente porque está relacionado con otros registros.",
+                    "error" => $e->getMessage()
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    "mensaje" => "Error inesperado al eliminar el ingrediente.",
+                    "error" => $e->getMessage()
+                ]);
+            }
         }
         exit();
     }

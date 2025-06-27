@@ -20,7 +20,6 @@ class ReservacionApiController {
         $metodo = $_SERVER['REQUEST_METHOD'];
         $id = $_GET['id_reservacion'] ?? null;
 
-        // Manejo de la solicitud OPTIONS para el "preflight" de CORS
         if ($metodo === 'OPTIONS') {
             http_response_code(200);
             exit();
@@ -32,19 +31,15 @@ class ReservacionApiController {
             case 'GET':
                 $this->handleGetRequest($id);
                 break;
-
             case 'POST':
                 $this->handlePostRequest();
                 break;
-
             case 'PUT':
                 $this->handlePutRequest($id);
                 break;
-
             case 'DELETE':
                 $this->handleDeleteRequest($id);
                 break;
-
             default:
                 http_response_code(405);
                 echo json_encode(["mensaje" => "Método no permitido"]);
@@ -53,21 +48,26 @@ class ReservacionApiController {
     }
 
     private function handleGetRequest(?int $id_reservacion){
-        if ($id_reservacion) {
-            $reservacion = $this->dao->obtenerPorId($id_reservacion);
-            if ($reservacion) {
-                echo json_encode($reservacion->toPublicArray());
+        try {
+            if ($id_reservacion) {
+                $reservacion = $this->dao->obtenerPorId($id_reservacion);
+                if ($reservacion) {
+                    echo json_encode($reservacion->toPublicArray());
+                } else {
+                    http_response_code(404);
+                    echo json_encode(["mensaje" => "Reservación no encontrada"]);
+                }
             } else {
-                http_response_code(404);
-                echo json_encode(["mensaje" => "Reservación no encontrada"]);
+                $reservaciones = $this->dao->obtenerDatos();
+                $reservacionesArray = array_map(fn($r) => $r->toPublicArray(), $reservaciones);
+                echo json_encode($reservacionesArray);
             }
-        } else {
-            $reservaciones = $this->dao->obtenerDatos();
-            $reservacionesArray = array_map(function($reservacion) {
-                return $reservacion->toPublicArray();
-            }, $reservaciones);
-            
-            echo json_encode($reservacionesArray);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode([
+                "mensaje" => "Error al obtener las reservaciones.",
+                "error" => $e->getMessage()
+            ]);
         }
         exit();
     }
@@ -91,12 +91,28 @@ class ReservacionApiController {
             $datos['estado'] ?? 'activa'
         );
 
-        if ($this->dao->insertar($reservacion)) {
-            http_response_code(201);
-            echo json_encode(["mensaje" => "Reservación creada exitosamente"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["mensaje" => "Error al crear la reservación"]);
+        try {
+            if ($this->dao->insertar($reservacion)) {
+                http_response_code(201);
+                echo json_encode(["mensaje" => "Reservación creada exitosamente"]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["mensaje" => "Error al crear la reservación"]);
+            }
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) {
+                http_response_code(409);
+                echo json_encode([
+                    "mensaje" => "Error de integridad de datos al crear la reservación.",
+                    "error" => $e->getMessage()
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    "mensaje" => "Error inesperado al crear la reservación.",
+                    "error" => $e->getMessage()
+                ]);
+            }
         }
         exit();
     }
@@ -116,29 +132,46 @@ class ReservacionApiController {
             exit();
         }
 
-        $reservacionExistente = $this->dao->obtenerPorId($id_reservacion);
-        if (!$reservacionExistente) {
-            http_response_code(404);
-            echo json_encode(["mensaje" => "Reservación a actualizar no encontrada"]);
-            exit();
-        }
+        try {
+            $reservacionExistente = $this->dao->obtenerPorId($id_reservacion);
+            if (!$reservacionExistente) {
+                http_response_code(404);
+                echo json_encode(["mensaje" => "Reservación a actualizar no encontrada"]);
+                exit();
+            }
 
-        $reservacion = new Reservacion(
-            $id_reservacion,
-            $datos['cliente_id'],
-            $datos['mesa_id'],
-            $datos['fecha_reserva'],
-            $datos['hora_reserva'],
-            $datos['cantidad_personas'],
-            $datos['estado'] ?? $reservacionExistente->estado // Usa el estado enviado o el actual
-        );
+            $reservacion = new Reservacion(
+                $id_reservacion,
+                $datos['cliente_id'],
+                $datos['mesa_id'],
+                $datos['fecha_reserva'],
+                $datos['hora_reserva'],
+                $datos['cantidad_personas'],
+                $datos['estado'] ?? $reservacionExistente->estado
+            );
 
-        if ($this->dao->actualizar($reservacion)) {
-            http_response_code(200);
-            echo json_encode(["mensaje" => "Reservación actualizada exitosamente"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["mensaje" => "Error al actualizar la reservación"]);
+            if ($this->dao->actualizar($reservacion)) {
+                http_response_code(200);
+                echo json_encode(["mensaje" => "Reservación actualizada exitosamente"]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["mensaje" => "Error al actualizar la reservación"]);
+            }
+
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) {
+                http_response_code(409);
+                echo json_encode([
+                    "mensaje" => "Error de integridad de datos al actualizar la reservación.",
+                    "error" => $e->getMessage()
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    "mensaje" => "Error inesperado al actualizar la reservación.",
+                    "error" => $e->getMessage()
+                ]);
+            }
         }
         exit();
     }
@@ -150,17 +183,32 @@ class ReservacionApiController {
             exit();
         }
 
-        if ($this->dao->eliminar($id_reservacion)) {
-            http_response_code(200);
-            echo json_encode(["mensaje" => "Reservación eliminada exitosamente"]);
-        } else {
-            http_response_code(500);
-            echo json_encode(["mensaje" => "Error al eliminar la reservación"]);
+        try {
+            if ($this->dao->eliminar($id_reservacion)) {
+                http_response_code(200);
+                echo json_encode(["mensaje" => "Reservación eliminada exitosamente"]);
+            } else {
+                http_response_code(500);
+                echo json_encode(["mensaje" => "Error al eliminar la reservación"]);
+            }
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) {
+                http_response_code(409);
+                echo json_encode([
+                    "mensaje" => "No se puede eliminar la reservación porque está relacionada con otros registros.",
+                    "error" => $e->getMessage()
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    "mensaje" => "Error inesperado al eliminar la reservación.",
+                    "error" => $e->getMessage()
+                ]);
+            }
         }
         exit();
     }
 }
 
-// Instanciar y manejar la solicitud
 $controlador = new ReservacionApiController();
 $controlador->manejarRequest();
