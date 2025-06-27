@@ -84,13 +84,40 @@ class ClienteApiController {
             $datos['estado'] ?? 'activo'
         );
 
-        if ($this->dao->insertar($cliente)) {
+        try {
+            if ($this->dao->insertar($cliente)) {
             http_response_code(201);
             echo json_encode(["mensaje" => "Cliente creado exitosamente"]);
         } else {
             http_response_code(500);
             echo json_encode(["mensaje" => "Error al crear el cliente"]);
         }
+        } catch (PDOException $e) {
+            // Manejo de errores BD
+            if ($e->getCode() == 23000) {
+                // Violación de restricci
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    http_response_code(409);
+                    echo json_encode([
+                        "mensaje" => "Ya existe un cliente con ese nombre.",
+                        "error" => $e->getMessage()
+                    ]);
+                } else {
+                    http_response_code(409);
+                    echo json_encode([
+                        "mensaje" => "Error de integridad de datos al crear el cliente.",
+                        "error" => $e->getMessage()
+                    ]);
+                }
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    "mensaje" => "Error inesperado al crear el cliente.",
+                    "error" => $e->getMessage()
+                ]);
+            }
+        }
+        exit();
     }
 
     private function handlePutRequest(?int $id){
@@ -134,12 +161,31 @@ class ClienteApiController {
             return;
         }
 
-        if ($this->dao->eliminar($id)) {
+            try {
+             if ($this->dao->eliminar($id)) {
             http_response_code(200);
             echo json_encode(["mensaje" => "Cliente eliminado exitosamente"]);
         } else {
             http_response_code(500);
             echo json_encode(["mensaje" => "Error al eliminar el cliente"]);
         }
+        } catch (PDOException $e) {
+            if ($e->getCode() == 23000) {
+                // Violación de clave 
+                http_response_code(409);
+                echo json_encode([
+                    "mensaje" => "No se puede eliminar el cliente porque está relacionado con otros registros.",
+                    "error" => $e->getMessage()
+                ]);
+            } else {
+                http_response_code(500);
+                echo json_encode([
+                    "mensaje" => "Error inesperado al eliminar el cliente.",
+                    "error" => $e->getMessage()
+                ]);
+            }
+        }
+        exit();
     }
 }
+
