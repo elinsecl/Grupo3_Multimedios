@@ -17,8 +17,8 @@ class HistorialInventarioApiController {
 
     public function manejarRequest(){
         $metodo = $_SERVER['REQUEST_METHOD'];
-        $id = $_GET['id_historial_inventario'] ?? null;
-        $id_historial_inventario = $_GET['id_inventario'] ?? null;
+        $id = $_GET['id_inventario'] ?? null;
+        $id_historial_inventario = $_GET['id_historial_inventario'] ?? null;
 
          // Manejo de la solicitud OPTIONS para el "preflight" de CORS
         if ($metodo === 'OPTIONS') {
@@ -36,7 +36,7 @@ class HistorialInventarioApiController {
                 $this->handlePostRequest();
                 break;
             case 'DELETE':
-                $this->handleDeleteRequest($id);
+                $this->handleDeleteRequest($id_historial_inventario);
                 break;
             default:
                 http_response_code(405);
@@ -87,14 +87,14 @@ class HistorialInventarioApiController {
         }
     }
 
-    private function handleDeleteRequest(?int $id){
-        if (!$id) {
+    private function handleDeleteRequest(?int $id_historial_inventario){
+        if (!$id_historial_inventario) {
             http_response_code(400);
             echo json_encode(["mensaje" => "ID del historial del inventario necesario para eliminar"]);
             return;
         }
 
-        if ($this->dao->eliminar($id)) {
+        if ($this->dao->eliminar($id_historial_inventario)) {
             http_response_code(200);
             echo json_encode(["mensaje" => "historial del inventario eliminada exitosamente"]);
         } else {

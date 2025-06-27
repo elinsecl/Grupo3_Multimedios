@@ -40,7 +40,7 @@ class HistorialPedidoApiController {
                 $this->handlePostRequest();
                 break;
             case 'DELETE':
-                $this->handleDeleteRequest($id);
+                $this->handleDeleteRequest($historial_pedido);
                 break;
             case 'PUT':
                 $this->handlePutRequest($historial_pedido);
